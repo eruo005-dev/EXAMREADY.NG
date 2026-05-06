@@ -1,0 +1,12 @@
+{
+  "name": "@examready/tailwind-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./preset.ts",
+  "types": "./preset.ts",
+  "files": ["preset.ts"],
+  "dependencies": {
+    "tailwindcss": "^3.4.13",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
