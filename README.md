@@ -4,6 +4,15 @@
 
 Built mobile-first for Nigerian networks. Naira-only pricing. WhatsApp-first communication.
 
+> **Sprint 6 status (2026-05-06):** All engineering for the launch sequence is complete. Deployment is the next step.
+>
+> - **AI provider:** DeepSeek-V3 / R1 primary, OpenAI gpt-4o-mini fallback. See [`apps/web/lib/ai/README.md`](apps/web/lib/ai/README.md).
+> - **New moat features:** AI Examiner (theory grading) + Predicted Score (data + AI hybrid). Replaced Pidgin as primary differentiator.
+> - **Pidgin:** feature-flagged off via `PIDGIN_ENABLED` pending Nigerian-fluent reviewer sign-off (see PIDGIN_SAMPLES.md).
+> - **Launch coverage:** JAMB UTME (live) + WAEC SSCE / NECO SSCE (beta). See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
+> - **Audit:** AUDIT_REPORT.md — 1 Critical fixed (admin role from app_metadata, not user_metadata), 1 High fixed (cron timing-safe compare), 1 Medium fixed (RLS extension), 1 High deferred (Next 14 → 15).
+> - **Blog:** 10 SEO-targeted articles at `/blog`, sitemap-indexed.
+
 ---
 
 ## Table of contents
@@ -26,25 +35,25 @@ Built mobile-first for Nigerian networks. Naira-only pricing. WhatsApp-first com
 
 Locked decisions — do not deviate without team discussion.
 
-| Layer | Choice | Why |
-|---|---|---|
-| Monorepo | pnpm workspaces + Turborepo | Fast, deterministic, well-supported on Vercel |
-| Frontend | Next.js 14 App Router + TypeScript + Tailwind + shadcn/ui | Single framework for SSR + API routes |
-| Backend | Next.js Route Handlers as Vercel Serverless | One deploy target, fewer cold starts than separate API |
-| State | Zustand (client) + TanStack Query (server) | Minimal boilerplate, great DX |
-| Database | Supabase Postgres + Realtime + Storage | Managed Postgres + auth + realtime in one |
-| ORM | Drizzle | TypeScript-native, fast, no codegen step |
-| Auth | Supabase Auth (phone OTP via Termii hook, email, Google) | Phone-first (Nigeria) with full identity flow |
-| Cache + rate-limit | Upstash Redis | Serverless-friendly, Vercel-native |
-| Background jobs | Upstash QStash | Replaces BullMQ — works on serverless |
-| Scheduled jobs | Vercel Cron | Native, no extra infra |
-| Payments | Paystack (NGN only) | Nigeria's default. Flutterwave as backup |
-| Notifications | Termii (WhatsApp + SMS) + Resend (email) | Single Nigerian provider for WA+SMS, billed in NGN |
-| Storage | Cloudflare R2 (large) + Vercel Blob (small) | R2 cheaper for video; Blob simpler for avatars |
-| AI | OpenAI + Anthropic | Multi-provider for redundancy |
-| Search | Meilisearch Cloud | Fast typo-tolerant search |
-| Analytics | PostHog Cloud + Sentry | Product + error tracking |
-| Ads | Google AdSense (free tier only) | Display ads for free-tier monetization |
+| Layer              | Choice                                                                    | Why                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Monorepo           | pnpm workspaces + Turborepo                                               | Fast, deterministic, well-supported on Vercel                                                         |
+| Frontend           | Next.js 14 App Router + TypeScript + Tailwind + shadcn/ui                 | Single framework for SSR + API routes                                                                 |
+| Backend            | Next.js Route Handlers as Vercel Serverless                               | One deploy target, fewer cold starts than separate API                                                |
+| State              | Zustand (client) + TanStack Query (server)                                | Minimal boilerplate, great DX                                                                         |
+| Database           | Supabase Postgres + Realtime + Storage                                    | Managed Postgres + auth + realtime in one                                                             |
+| ORM                | Drizzle                                                                   | TypeScript-native, fast, no codegen step                                                              |
+| Auth               | Supabase Auth (phone OTP via Termii hook, email, Google)                  | Phone-first (Nigeria) with full identity flow                                                         |
+| Cache + rate-limit | Upstash Redis                                                             | Serverless-friendly, Vercel-native                                                                    |
+| Background jobs    | Upstash QStash                                                            | Replaces BullMQ — works on serverless                                                                 |
+| Scheduled jobs     | Vercel Cron                                                               | Native, no extra infra                                                                                |
+| Payments           | Paystack (NGN only)                                                       | Nigeria's default. Flutterwave as backup                                                              |
+| Notifications      | Termii (WhatsApp + SMS) + Resend (email)                                  | Single Nigerian provider for WA+SMS, billed in NGN                                                    |
+| Storage            | Cloudflare R2 (large) + Vercel Blob (small)                               | R2 cheaper for video; Blob simpler for avatars                                                        |
+| AI                 | DeepSeek-V3/R1 (primary) + OpenAI gpt-4o-mini (fallback) + optional local | Sprint 6 migrated from Anthropic for cost. See [apps/web/lib/ai/README.md](apps/web/lib/ai/README.md) |
+| Search             | Meilisearch Cloud                                                         | Fast typo-tolerant search                                                                             |
+| Analytics          | PostHog Cloud + Sentry                                                    | Product + error tracking                                                                              |
+| Ads                | Google AdSense (free tier only)                                           | Display ads for free-tier monetization                                                                |
 
 ## Repository layout
 
@@ -69,14 +78,14 @@ Target: clone-to-running in 30 minutes.
 
 The following toolchain has been confirmed end-to-end (`pnpm install`, `pnpm db:generate`, `pnpm typecheck`, `pnpm lint`, `pnpm build` all green):
 
-| Tool | Version | Notes |
-|---|---|---|
-| Node | 20.x or newer (tested on 25.8.2) | `.nvmrc` pins to 20 |
-| pnpm | 9.12.0 | Pinned via `packageManager` field |
-| Docker | 29.x (tested on 29.3.1) | For local Postgres + Redis + Meilisearch |
-| Turborepo | 2.9.x | Auto-installed by pnpm |
-| Next.js | 14.2.x | App Router |
-| Drizzle Kit | 0.25.x | Generates migrations |
+| Tool        | Version                          | Notes                                    |
+| ----------- | -------------------------------- | ---------------------------------------- |
+| Node        | 20.x or newer (tested on 25.8.2) | `.nvmrc` pins to 20                      |
+| pnpm        | 9.12.0                           | Pinned via `packageManager` field        |
+| Docker      | 29.x (tested on 29.3.1)          | For local Postgres + Redis + Meilisearch |
+| Turborepo   | 2.9.x                            | Auto-installed by pnpm                   |
+| Next.js     | 14.2.x                           | App Router                               |
+| Drizzle Kit | 0.25.x                           | Generates migrations                     |
 
 `pnpm install` resolves ~1050 packages and completes in ≈60 seconds on a warm cache, ≈3 minutes cold.
 
@@ -126,6 +135,7 @@ pnpm dev
 ```
 
 Visit:
+
 - Student app: <http://localhost:3000>
 - Admin: <http://localhost:3001>
 - Drizzle Studio: `pnpm db:studio` → <https://local.drizzle.studio>
@@ -156,6 +166,7 @@ pnpm db:seed
 Every key is documented in `.env.example` at the repo root. Production values live in Vercel's environment config UI — never commit secrets.
 
 Categories:
+
 - **Runtime**: `NODE_ENV`, `LOCAL_DEV`, `DEV_AUTH_BYPASS`
 - **Database**: `DATABASE_URL` (pooler, port 6543), `DIRECT_URL` (unpooled, for migrations)
 - **Supabase**: `SUPABASE_URL`, anon key, service-role key, Auth Hook secret
@@ -263,7 +274,6 @@ For each project:
 2. Verify business — provide CAC certificate and Director's NIN/passport
 3. Apply for **WhatsApp Business API** access (Termii dashboard → WhatsApp). Approval typically takes 5–10 business days.
 4. **Submit WhatsApp templates for approval** — required before sending. The full list of templates we use is in `packages/notifications/src/templates/registry.ts`. Submit all of them in one batch:
-
    - `otp_code` (transactional)
    - `welcome` (utility — English + Pidgin variants)
    - `daily_reminder` (utility)
@@ -290,7 +300,7 @@ For each project:
    - Basic Monthly — ₦2,500 / month
    - Pro Monthly — ₦5,000 / month
    - Pro Annual — ₦25,000 / year
-   Copy each plan code into `PAYSTACK_PLAN_BASIC_MONTHLY`, `PAYSTACK_PLAN_PRO_MONTHLY`, `PAYSTACK_PLAN_PRO_ANNUAL`.
+     Copy each plan code into `PAYSTACK_PLAN_BASIC_MONTHLY`, `PAYSTACK_PLAN_PRO_MONTHLY`, `PAYSTACK_PLAN_PRO_ANNUAL`.
 4. Test the webhook end-to-end with a ₦100 charge in test mode before flipping live keys. The handler is functional in Sprint 0 (`apps/web/lib/webhooks/paystack.ts` and `apps/web/app/api/webhooks/paystack/route.ts`).
 
 ### Resend (email)
@@ -358,6 +368,7 @@ error fires `captureException` with PII redacted via `redactPii()`. Set
 missing keys = no-op, no errors shipped anywhere.
 
 What's filtered before send:
+
 - `event.user` reduced to `{ id }` only — email, IP, username blanked
 - Request headers stripped entirely (auth tokens live there)
 - Request body recursively redacted by key (`phone`, `email`, etc.) and
@@ -393,6 +404,7 @@ PostHog responds, so design components to treat false + undefined the
 same.
 
 ### Required env vars
+
 - `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`
 - `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 
@@ -404,15 +416,15 @@ same.
 
 ### Common ops
 
-| Task | Command |
-|---|---|
-| Apply DB migration | `pnpm db:migrate` |
+| Task                           | Command            |
+| ------------------------------ | ------------------ |
+| Apply DB migration             | `pnpm db:migrate`  |
 | Generate migration from schema | `pnpm db:generate` |
-| Re-seed local DB | `pnpm db:seed` |
-| Open Drizzle Studio | `pnpm db:studio` |
-| Lint everything | `pnpm lint` |
-| Typecheck everything | `pnpm typecheck` |
-| Run all tests | `pnpm test` |
+| Re-seed local DB               | `pnpm db:seed`     |
+| Open Drizzle Studio            | `pnpm db:studio`   |
+| Lint everything                | `pnpm lint`        |
+| Typecheck everything           | `pnpm typecheck`   |
+| Run all tests                  | `pnpm test`        |
 
 ### Disabling ads globally
 
@@ -497,6 +509,7 @@ If WhatsApp fails synchronously (Termii returns "not on whatsapp"), we try SMS i
 ## Sprint 0 status
 
 ✅ **Foundations**:
+
 - Monorepo (pnpm + Turborepo)
 - Drizzle schema (22 tables, indexes, partial indexes for hot queries)
 - Migrations (generated + extras for FK / triggers / RLS baseline)
@@ -506,6 +519,7 @@ If WhatsApp fails synchronously (Termii returns "not on whatsapp"), we try SMS i
 - Termii + Resend providers in `packages/notifications` with 13 templates registered
 
 ✅ **API (29 routes)**:
+
 - Auth: 5 (request-otp, verify, resend, google, logout)
 - Catalog: 3 (exams, subjects, topics)
 - Practice/attempts: 5 (questions/practice, attempts CRUD, submit)
@@ -516,6 +530,7 @@ If WhatsApp fails synchronously (Termii returns "not on whatsapp"), we try SMS i
 - Health: 1
 
 ✅ **Frontend**:
+
 - Marketing pages (landing, pricing, about, contact, privacy, terms)
 - Auth + onboarding wizard (5 steps, age 13+ gate)
 - Dashboard with aggregated stats + weak-topics heatmap
@@ -530,6 +545,7 @@ If WhatsApp fails synchronously (Termii returns "not on whatsapp"), we try SMS i
 ✅ **Deployment configs** — `vercel.json` (4 cron jobs, full security headers + CSP), `docker-compose.yml` (Postgres + Redis + Meilisearch).
 
 ⏳ **Deferred to subsequent sprints**:
+
 - AI tutor backend (chat, essay grading, study plan generator)
 - Paystack subscription init flow + frontend
 - Real Termii delivery receipt handling

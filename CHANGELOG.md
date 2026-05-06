@@ -9,6 +9,62 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 - Sprint 2 work (in progress) — see git log for partial Sprint 2 deliverables
 
+## [Sprint 6] — 2026-05-06 — DeepSeek-only + AI Examiner + Predicted Score
+
+### Security
+
+- **Critical**: admin role check switched from client-mutable `user_metadata.role` to server-only `app_metadata.role` in both apps/web/lib/auth/session.ts and apps/admin/lib/auth/server.ts. Without this, any signed-in user could promote themselves to admin via `auth.updateUser({data:{role:'admin'}})`.
+- **High**: cron Bearer token verification migrated to `crypto.timingSafeEqual` to remove a timing-attack vector on `Authorization: Bearer ${CRON_SECRET}`.
+- **Medium**: RLS extended to all Sprint 4-6 tables (study_plans, ai_usage_log, ai_feedback, app_settings, exam_waitlist, consent_log, target_exams, bulk_generation_jobs, theory_attempts) via `0004_rls_extend_sprint6.sql`. exam_waitlist gets a public-INSERT policy for /coming-soon.
+- Full audit report in AUDIT_REPORT.md.
+
+### Changed
+
+- **AI provider strategy** retired the Sprint 5 hybrid in favour of DeepSeek-V3 for everything, with OpenAI gpt-4o-mini as emergency fallback. Anthropic provider commented out (kept as dead code for future re-introduction). Local inference (LOCAL_AI_ENABLED) added as opt-in for non-critical features only.
+- **Pidgin** feature-flagged off via `PIDGIN_ENABLED` env var (default false). Code, prompts, routing all retained. `/api/ai/explain-differently` rejects level=pidgin with `FEATURE_DISABLED` 404 when unset; ExplanationCard hides the dropdown option behind `NEXT_PUBLIC_PIDGIN_ENABLED`.
+- **Hero copy + features** repositioned to lead with the new moat. Three hero variants stored inline (default = "Get exam-grade feedback before you sit the exam.") for future PostHog A/B test.
+
+### Added
+
+- **AI Examiner** (`POST /api/ai/grade-theory`) — grades WAEC/NECO theory answers against marking_guide via DeepSeek-R1 reasoner. Returns per-criterion marks + 1-paragraph overall feedback + 3 specific suggested improvements. Persists to new `theory_attempts` table.
+- **Predicted Score** (`GET /api/me/predicted-score`) — pulls 90 days of attempts, weights accuracy by topic frequency, applies trend adjustment, maps to exam-specific score band (JAMB 0-360, WAEC/NECO 9-grade A1-F9). Returns INSUFFICIENT_DATA below 50 samples. Optional 1-paragraph DeepSeek interpretation cached 24h.
+- **`step_by_step`** explain-differently level — replaces UX gap left by hiding Pidgin. Numbered steps, max 6, one sentence each.
+- **Bulk question generation pipeline** — `POST /api/admin/questions/bulk-generate` creates parent job + fans out one QStash worker per topic; `POST /api/admin/jobs/generate-questions-batch` is the worker; new `bulk_generation_jobs` table tracks aggregate progress. `/admin/questions/bulk-generate` page provides the form UI.
+- **WAEC SSCE + NECO SSCE catalog promotion** — `coverage_status='beta'`, isActive=true. International exams (IELTS/TOEFL/SAT/GRE/Duolingo) set to `coverage_status='hidden'` and excluded from /api/exams.
+- **Topic seed data** — ~80 new topic entries with 1-2 sentence descriptions covering all 9 active JAMB subjects + WAEC/NECO Math/English/Bio/Chem/Physics.
+- **Theory question fields** on `questions` table — `marking_guide` jsonb (array of {point, marks}), `max_marks` smallint, `sample_excellent_answer` text.
+- **Reviewer attribution** — `approved_by` + `approved_at` on questions for tracking who approved which question (reviewer payment + audit).
+- **`CoverageBadge`** component (BETA / COMING_SOON variants).
+- **`/api/health/ai`** probes DeepSeek + OpenAI + local; returns 503 when DeepSeek down so external monitors can page.
+- **`/api/admin/bulk-generation-jobs`** + `/api/admin/waitlist` admin GET endpoints (UI deferred — see OPEN_QUESTIONS.md).
+- **5 new FAQ entries** on AI Examiner accuracy, Predicted Score basis + trustworthiness, JAMB applicability, school-assignment use case.
+- **Preflight script** (`pnpm --filter @examready/web preflight`) — env vars + service health check before deploy.
+- **Launch docs**: TERMII_FINISH.md, PAYSTACK_GO_LIVE.md, STAGING_BRINGUP.md, plus a rewrite of LAUNCH_CHECKLIST.md with status tags + leverage-sorted Top 10.
+- **/blog** routes — `lib/blog.ts` markdown loader with frontmatter, `/blog` index page, `/blog/[slug]` dynamic page with Article schema. Sitemap.ts updated.
+- **10 SEO-targeted blog articles** in `apps/web/content/blog/` covering JAMB UTME 2026, WAEC SSCE timetable, NECO June 2026, Post-UTME cut-offs, JAMB subject combinations, How to score 300+ in JAMB, WAEC vs NECO comparison, JAMB CBT walkthrough, JAMB Math top 10 topics, Post-UTME by university.
+
+### Schema migrations
+
+- `0008_funny_killraven.sql` — coverage_status enum gains 'beta' + 'hidden'; questions gets approved_by/approved_at/marking_guide/max_marks/sample_excellent_answer; new bulk_generation_jobs + theory_attempts tables.
+- `extras/0004_rls_extend_sprint6.sql` — RLS on Sprint 4-6 tables (apply with `psql -f` directly; not auto-applied).
+
+### Deferred (logged in OPEN_QUESTIONS.md / SESSION_REPORT.md)
+
+- Next.js 14 → 15 migration. Hard gate before open-signup launch. Mitigated by Cloudflare + per-route rate limits during private beta.
+- Termii webhook signature verification — needs production Termii Business account + sender approval to know the signature scheme.
+- Practice runner UI for theory questions ("Submit & Grade" path on theory question_type) — endpoint works; user-facing surface deferred to user-driven UI sprint.
+- Predicted Score dashboard widget — endpoint works; dashboard card deferred.
+- Live progress monitor + waitlist admin pages — APIs exist, UI deferred.
+- Bulk-approve + filters in moderation queue — `approved_by` columns shipped; queue page integration deferred.
+- @vercel/og dynamic blog OG images — standard og:image meta + default image works for initial launch.
+- Lit/Govt/Econ/Geo/History/CRK/Agric topic trees for WAEC + NECO — admin can populate via /admin/topics or bulk-generate.
+
+### Notes
+
+- Cumulative cost reduction Sprint 4 → Sprint 6: -66% at every DAU tier.
+- New env vars: `OPENAI_API_KEY`, `PIDGIN_ENABLED`, `NEXT_PUBLIC_PIDGIN_ENABLED`, `LOCAL_AI_ENABLED`, `LOCAL_AI_BASE_URL`, `UPSTASH_QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`. Removed (commented): `ANTHROPIC_API_KEY`.
+- New deps: openai (already added Sprint 5), gray-matter, marked, tsx (devDep), dotenv (devDep).
+
 ## [Sprint 5] — 2026-05-06 — DeepSeek hybrid integration
 
 ### Added

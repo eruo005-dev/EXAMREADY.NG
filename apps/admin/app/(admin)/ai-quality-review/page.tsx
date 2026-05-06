@@ -69,6 +69,7 @@ type Response = {
 
 export default function AiQualityReviewPage() {
   const [feature, setFeature] = useState<Feature>('explain_differently');
+  const [fallbackOnly, setFallbackOnly] = useState(false);
   const [data, setData] = useState<Response | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +77,9 @@ export default function AiQualityReviewPage() {
     let cancelled = false;
     setLoading(true);
     void (async () => {
-      const r = await api<Response>(`/api/admin/ai-quality?feature=${feature}&limit=30`);
+      const r = await api<Response>(
+        `/api/admin/ai-quality?feature=${feature}&limit=30${fallbackOnly ? '&fallbackOnly=true' : ''}`,
+      );
       if (cancelled) return;
       if (r.ok) setData(r.data);
       else setData(null);
@@ -85,7 +88,7 @@ export default function AiQualityReviewPage() {
     return () => {
       cancelled = true;
     };
-  }, [feature]);
+  }, [feature, fallbackOnly]);
 
   return (
     <div className="space-y-6">
@@ -177,9 +180,20 @@ export default function AiQualityReviewPage() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-lg font-semibold">
-          Recent samples — {FEATURES.find((f) => f.id === feature)?.label}
-        </h2>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">
+            Recent samples — {FEATURES.find((f) => f.id === feature)?.label}
+          </h2>
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={fallbackOnly}
+              onChange={(e) => setFallbackOnly(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <span>Show only fallback events</span>
+          </label>
+        </div>
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (

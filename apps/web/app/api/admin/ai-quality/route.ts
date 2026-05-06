@@ -14,7 +14,7 @@
  * a sampling window then turn it off again.
  */
 import { aiFeedback, aiUsageLog } from '@examready/db/schema';
-import { and, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, sql, type SQL } from 'drizzle-orm';
 
 import { defineRoute, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
@@ -28,6 +28,7 @@ export const GET = defineRoute({ auth: 'admin' })(async ({ req }) => {
   const url = new URL(req.url);
   const feature = url.searchParams.get('feature') ?? 'explain_differently';
   const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '20', 10), 100);
+  const fallbackOnly = url.searchParams.get('fallbackOnly') === 'true';
   const since = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   // Aggregate counts per (feature, provider) in the window so the UI can
@@ -105,9 +106,12 @@ export const GET = defineRoute({ auth: 'admin' })(async ({ req }) => {
     .from(aiUsageLog)
     .where(
       and(
-        eq(aiUsageLog.feature, feature),
-        isNotNull(aiUsageLog.outputSample),
-        gte(aiUsageLog.createdAt, since),
+        ...([
+          eq(aiUsageLog.feature, feature),
+          isNotNull(aiUsageLog.outputSample),
+          gte(aiUsageLog.createdAt, since),
+          fallbackOnly ? eq(aiUsageLog.wasFallback, true) : undefined,
+        ].filter(Boolean) as SQL[]),
       ),
     )
     .orderBy(desc(aiUsageLog.createdAt))
