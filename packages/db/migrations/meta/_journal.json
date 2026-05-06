@@ -22,6 +22,13 @@
       "when": 1778073277218,
       "tag": "0002_sudden_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778074123657,
+      "tag": "0003_bent_wendigo",
+      "breakpoints": true
     }
   ]
 }

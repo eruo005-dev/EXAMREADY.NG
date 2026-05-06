@@ -35,6 +35,19 @@ export default function ContactPage() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="font-semibold">Data Protection Officer</p>
+            <p className="text-sm text-muted-foreground">
+              Privacy questions, NDPR data requests, account deletion. Our DPO responds
+              within 30 days as required by NDPR.
+            </p>
+            <Button variant="outline" asChild>
+              <Link href="mailto:privacy@examready.ng">privacy@examready.ng</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

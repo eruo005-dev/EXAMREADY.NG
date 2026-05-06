@@ -75,6 +75,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/privacy">Privacy</Link></li>
                 <li><Link href="/terms">Terms</Link></li>
+                <li><Link href="/cookies">Cookies</Link></li>
               </ul>
             </div>
           </div>
