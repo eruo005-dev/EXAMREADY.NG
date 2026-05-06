@@ -15,6 +15,13 @@
       "when": 1778071854338,
       "tag": "0001_abandoned_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778073277218,
+      "tag": "0002_sudden_mole_man",
+      "breakpoints": true
     }
   ]
 }

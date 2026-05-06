@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 
 import { AdSenseScript } from '@/components/ads/AdSenseScript';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { getAdsEnabled } from '@/lib/admin/settings';
 import { createServerClient } from '@/lib/auth/server';
 import { db } from '@/lib/db';
 
@@ -22,6 +23,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   if (!profile) redirect('/login');
 
   if (!profile.onboardingCompletedAt) redirect('/onboarding');
+
+  // Admin-controlled global kill switch — if Google flags our AdSense
+  // account, an admin can flip this without requiring a deploy.
+  const adsEnabled = await getAdsEnabled();
+  const showAds = profile.subscriptionTier === 'free' && adsEnabled;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -63,7 +69,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <MobileTab href="/settings/notifications" icon={Settings} label="Settings" />
       </nav>
 
-      {profile.subscriptionTier === 'free' && <AdSenseScript />}
+      {showAds && <AdSenseScript />}
     </div>
   );
 }

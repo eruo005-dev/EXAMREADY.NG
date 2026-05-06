@@ -162,12 +162,9 @@ export function QuestionRunner({
 
       {showAdAfterCurrent && (
         <AdSlot
-          slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BETWEEN_QUESTIONS ?? '0000000000'}
-          placement="between_questions"
+          placement="practice_interstitial"
           subscriptionTier={subscriptionTier}
           age={age}
-          width={336}
-          height={280}
         />
       )}
 

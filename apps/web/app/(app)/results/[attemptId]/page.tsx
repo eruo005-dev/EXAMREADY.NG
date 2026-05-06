@@ -75,17 +75,11 @@ export default function ResultsPage() {
         </CardContent>
       </Card>
 
-      {/* Free-tier ad above explanations */}
-      <AdSlot
-        slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_RESULTS_TOP ?? '0000000000'}
-        placement="results_top"
-        // We don't have user tier in this client component without a fetch — server component
-        // could pass it. Sprint 0: AdSlot will return null if env var missing or tier != free.
-        subscriptionTier="free"
-        age={null}
-        width={336}
-        height={280}
-      />
+      {/* Free-tier ad above explanations. Tier defaults to "free" here —
+          AdSlot returns null for paid tiers regardless. A future revision
+          will pass real user.subscriptionTier from a session fetch so the
+          slot dimensions never reserve space for paid users. */}
+      <AdSlot placement="results_top" subscriptionTier="free" age={null} />
 
       <div className="space-y-3">
         {data.breakdown.map((b, idx) => (

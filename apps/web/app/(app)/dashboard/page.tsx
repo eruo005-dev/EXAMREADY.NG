@@ -189,15 +189,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-6">
-          {/* Sidebar AdSlot — free tier only */}
+          {/* Sidebar AdSlot — free tier only. The (app) layout reads the
+              ads_enabled kill switch and only mounts AdSenseScript when on. */}
           {isFree && (
             <AdSlot
-              slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_SIDEBAR ?? '0000000000'}
               placement="dashboard_sidebar"
               subscriptionTier={data.user.subscriptionTier}
               age={null}
-              width={300}
-              height={250}
             />
           )}
 

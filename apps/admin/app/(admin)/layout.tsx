@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/moderation', label: 'Moderation' },
   { href: '/broadcasts', label: 'Broadcasts' },
   { href: '/bursaries', label: 'Bursaries' },
+  { href: '/ads-toggle', label: 'Ads kill switch' },
 ] as const;
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

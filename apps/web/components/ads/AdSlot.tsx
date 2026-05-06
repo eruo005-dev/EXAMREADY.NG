@@ -4,21 +4,53 @@ import { cn } from '@examready/ui';
 import { useEffect, useRef } from 'react';
 
 
+/**
+ * Logical placement → AdSense slot env var. Adding a new placement?
+ * Add an entry here and a new env var to .env.example. Never hard-code
+ * slot IDs — they change per AdSense account/region.
+ *
+ * Note on env access: Next.js inlines NEXT_PUBLIC_* at build time only when
+ * accessed via the literal `process.env.SOMETHING_LITERAL`. Dynamic key
+ * access (`process.env[name]`) returns undefined in the browser bundle.
+ * Hence the explicit per-placement switch below.
+ */
+const PLACEMENTS = {
+  dashboard_sidebar: { width: 300, height: 250 },
+  practice_interstitial: { width: 336, height: 280 },
+  results_top: { width: 336, height: 280 },
+  footer_banner: { width: 728, height: 90 },
+} as const;
+
+export type AdPlacement = keyof typeof PLACEMENTS;
+
+function slotIdFor(placement: AdPlacement): string | undefined {
+  switch (placement) {
+    case 'dashboard_sidebar':
+      return process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_SIDEBAR;
+    case 'practice_interstitial':
+      return process.env.NEXT_PUBLIC_ADSENSE_SLOT_PRACTICE_INTERSTITIAL;
+    case 'results_top':
+      return process.env.NEXT_PUBLIC_ADSENSE_SLOT_RESULTS_TOP;
+    case 'footer_banner':
+      return process.env.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER_BANNER;
+  }
+}
+
 type AdSlotProps = {
-  /** AdSense data-ad-slot — the slot id from your AdSense dashboard. */
-  slotId: string;
-  /** Logical placement name — for our own first-party impression tracking. */
-  placement: string;
+  /** Logical placement; the slot ID and dimensions are looked up from this. */
+  placement: AdPlacement;
   /** User's subscription tier — null for anonymous visitors. */
   subscriptionTier: 'free' | 'basic' | 'pro' | null;
   /**
-   * User's age — used for the "minor" branch (13–17 see only non-personalized ads
-   * via data-tag-for-under-age-of-consent). null for anonymous.
+   * User's age. null for anonymous. Users 13–17 see only non-personalized ads
+   * via data-tag-for-under-age-of-consent. Users <13 are blocked entirely.
    */
   age: number | null;
-  /** Reserved width / height to prevent layout shift (CLS = 0). */
-  width: number;
-  height: number;
+  /** When false (kill switch), AdSlot renders nothing regardless of tier. */
+  adsEnabled?: boolean;
+  /** Override dimensions if the placement default doesn't fit. */
+  width?: number;
+  height?: number;
   className?: string;
 };
 
@@ -29,33 +61,42 @@ declare global {
 }
 
 /**
- * Tier-aware AdSense slot.
+ * Tier-aware, age-aware, killswitch-aware AdSense slot.
  *
- * Returns null (renders nothing) for:
+ * Returns null for:
  * - basic / pro subscribers — they paid to remove ads
  * - users under 13 — COPPA + AdSense policy violation
+ * - adsEnabled=false — admin kill switch flipped
+ * - missing AdSense client id — pre-approval state, ads not yet wired
  *
  * Reserves the slot's pixel dimensions in CSS so layout doesn't shift
- * once the ad loads — CLS budget is critical for SEO and AdSense quality.
+ * once the ad loads. CLS budget is critical for SEO + AdSense quality.
  */
 export function AdSlot({
-  slotId,
   placement,
   subscriptionTier,
   age,
-  width,
-  height,
+  adsEnabled = true,
+  width: widthOverride,
+  height: heightOverride,
   className,
 }: AdSlotProps) {
   const insRef = useRef<HTMLModElement | null>(null);
 
+  const slotId = slotIdFor(placement);
+  const dims = PLACEMENTS[placement];
+  const width = widthOverride ?? dims.width;
+  const height = heightOverride ?? dims.height;
+
   // Hard gates BEFORE any AdSense code runs.
   const shouldRender =
+    adsEnabled &&
     subscriptionTier === 'free' &&
-    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID &&
+    Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) &&
+    Boolean(slotId) &&
     (age === null || age >= 13);
 
-  // For minors (13-17), ads must be non-personalized.
+  // For minors (13–17), ads must be non-personalized.
   const isMinor = age !== null && age >= 13 && age < 18;
 
   useEffect(() => {

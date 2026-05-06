@@ -12,3 +12,4 @@ export * from './billing';
 export * from './notifications';
 export * from './ads';
 export * from './social';
+export * from './app-settings';
