@@ -47,6 +47,14 @@ export const users = pgTable(
     referralCode: varchar('referral_code', { length: 20 }).notNull(),
     referredByUserId: uuid('referred_by_user_id'),
     onboardingCompletedAt: timestamp('onboarding_completed_at', { withTimezone: true }),
+    /**
+     * Streak tracking — maintained by the daily streak-rollover cron.
+     * `lastActiveDate` is the most recent calendar date (in user's tz) on
+     * which they submitted an attempt. `streakDays` is the consecutive
+     * count of dates leading up to (and including) lastActiveDate.
+     */
+    streakDays: smallint('streak_days').notNull().default(0),
+    lastActiveDate: date('last_active_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
