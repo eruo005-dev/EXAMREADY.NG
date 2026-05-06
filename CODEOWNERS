@@ -1,0 +1,28 @@
+# CODEOWNERS — every PR requires review from the listed owners.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner — every file unless overridden below
+*                               @eruo005-dev
+
+# Keep payment + auth + privacy code review extra-tight
+/apps/web/app/api/auth/         @eruo005-dev
+/apps/web/app/api/webhooks/     @eruo005-dev
+/apps/web/app/api/admin/        @eruo005-dev
+/apps/web/lib/auth/             @eruo005-dev
+/apps/web/lib/webhooks/         @eruo005-dev
+/apps/web/components/ads/       @eruo005-dev
+/apps/web/lib/observability/    @eruo005-dev
+
+# Schema changes need extra care (data migrations are hard to reverse)
+/packages/db/                   @eruo005-dev
+/packages/db/migrations/        @eruo005-dev
+
+# Legal pages — wording changes need approval
+/apps/web/app/(marketing)/privacy/    @eruo005-dev
+/apps/web/app/(marketing)/terms/      @eruo005-dev
+/apps/web/app/(marketing)/cookies/    @eruo005-dev
+
+# CI / deploy config — hard to test changes locally, easy to break prod
+/.github/workflows/             @eruo005-dev
+/apps/web/vercel.json           @eruo005-dev
+/turbo.json                     @eruo005-dev
