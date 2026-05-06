@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 import { uuidSchema } from './primitives';
 
-export const explainLevelSchema = z.enum(['simpler', 'with-analogy', 'in-pidgin']);
+/**
+ * Sprint 6: levels are snake_case ('with_analogy', 'pidgin') and a new
+ * 'step_by_step' level was added. Older clients sending 'with-analogy'
+ * or 'in-pidgin' will get a 400; the rename is a hard cutover, not a
+ * compatibility shim. UI was redeployed in lockstep.
+ */
+export const explainLevelSchema = z.enum(['simpler', 'with_analogy', 'step_by_step', 'pidgin']);
 export type ExplainLevel = z.infer<typeof explainLevelSchema>;
 
 export const explainDifferentlyInputSchema = z.object({
@@ -10,6 +16,13 @@ export const explainDifferentlyInputSchema = z.object({
   level: explainLevelSchema,
 });
 export type ExplainDifferentlyInput = z.infer<typeof explainDifferentlyInputSchema>;
+
+export const aiGradeTheoryInputSchema = z.object({
+  questionId: uuidSchema,
+  examId: uuidSchema,
+  userAnswer: z.string().min(1).max(5000),
+});
+export type AiGradeTheoryInput = z.infer<typeof aiGradeTheoryInputSchema>;
 
 export const tutorChatInputSchema = z.object({
   /**

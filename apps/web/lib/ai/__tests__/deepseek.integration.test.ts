@@ -55,12 +55,12 @@ describe('deepseek provider — live integration', () => {
   );
 
   itOrSkip(
-    'completion: with-analogy returns Nigerian-context analogy',
+    'completion: with_analogy returns Nigerian-context analogy',
     async () => {
       const result = await deepseekProvider.completion({
         model: 'deepseek-chat',
         maxTokens: 800,
-        systemPrompt: EXPLAIN_SYSTEM_PROMPTS['with-analogy'],
+        systemPrompt: EXPLAIN_SYSTEM_PROMPTS.with_analogy,
         messages: [{ role: 'user', content: buildExplainUserMessage(SAMPLE_QUESTION) }],
       });
       expect(result.text.length).toBeGreaterThan(40);

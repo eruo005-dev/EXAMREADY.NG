@@ -1,16 +1,23 @@
-/**
- * Anthropic provider — wraps the @anthropic-ai/sdk Messages API behind
- * the AiProvider interface so call sites can swap providers without
- * caring which one's running.
- *
- * Used in production for:
- *  - Tutor chat (Sonnet 4.6) — quality matters most for the multi-turn case
- *  - Pidgin explain-differently (Haiku 4.5) — Pidgin is the moat, never
- *    silently fall back to DeepSeek (DeepSeek's Pidgin is unverified)
- *  - Fallback for everything else when DeepSeek is down (Haiku to keep
- *    cost in check)
- */
-import Anthropic from '@anthropic-ai/sdk';
+// Disabled at Sprint 6 — kept for future re-introduction.
+//
+// Anthropic was the original AI provider (Sprints 3-4) and the fallback
+// for DeepSeek (Sprint 5). Sprint 6 migrated all features to DeepSeek
+// with OpenAI gpt-4o-mini as the emergency fallback. The Anthropic
+// adapter is intentionally retained as commented-out code so a future
+// sprint can re-enable it (e.g. for the Pidgin moat once DeepSeek's
+// Pidgin output is verified, or as a third-line fallback).
+//
+// To re-enable:
+//   1. Uncomment the implementation block below.
+//   2. Add `anthropic: anthropicProvider` to PROVIDERS in providers/index.ts.
+//   3. Add ANTHROPIC_API_KEY back to the active section of .env.example.
+//   4. Update AI_MODELS in lib/ai/constants.ts to route the relevant feature.
+//   5. Update lib/ai/README.md routing table.
+//
+// The stub below keeps the symbol exported (so existing imports don't
+// break) but reports `isConfigured() === false` and throws on every call.
+// That makes it inert — runWithFallback() will skip it as a primary and
+// any direct caller will get a clear "not configured" ProviderError.
 
 import {
   type AiProvider,
@@ -22,6 +29,28 @@ import {
   type ToolUseResult,
 } from './types';
 
+const DISABLED_MESSAGE =
+  'Anthropic provider is disabled at Sprint 6. See lib/ai/providers/anthropic.ts for re-enable instructions.';
+
+export const anthropicProvider: AiProvider = {
+  name: 'anthropic',
+  isConfigured: () => false,
+  async completion(_params: CompletionParams): Promise<CompletionResult> {
+    throw new ProviderError(DISABLED_MESSAGE, 'anthropic', false);
+  },
+  // eslint-disable-next-line require-yield
+  async *stream(_params: CompletionParams): AsyncIterable<StreamChunk> {
+    throw new ProviderError(DISABLED_MESSAGE, 'anthropic', false);
+  },
+  async toolUse(_params: ToolUseParams): Promise<ToolUseResult> {
+    throw new ProviderError(DISABLED_MESSAGE, 'anthropic', false);
+  },
+};
+
+/* === Original Anthropic implementation — disabled at Sprint 6 ===
+
+import Anthropic from '@anthropic-ai/sdk';
+
 let cached: Anthropic | null | undefined;
 
 function client(): Anthropic | null {
@@ -31,10 +60,6 @@ function client(): Anthropic | null {
   return cached;
 }
 
-/**
- * Anthropic SDK errors carry a `status` field. Treat 5xx / 408 / 429
- * as retryable (fallback worthwhile); 4xx schema/auth as terminal.
- */
 function isRetryableAnthropicError(err: unknown): boolean {
   const status =
     (err as { status?: number; statusCode?: number })?.status ??
@@ -44,7 +69,6 @@ function isRetryableAnthropicError(err: unknown): boolean {
     if (status === 408 || status === 429) return true;
     return false;
   }
-  // Network-level error (no status) — assume retryable.
   return true;
 }
 
@@ -58,7 +82,7 @@ function wrap(err: unknown, op: string): never {
   );
 }
 
-export const anthropicProvider: AiProvider = {
+export const anthropicProviderImpl: AiProvider = {
   name: 'anthropic',
 
   isConfigured() {
@@ -160,3 +184,5 @@ export const anthropicProvider: AiProvider = {
     }
   },
 };
+
+=== end disabled Anthropic implementation === */

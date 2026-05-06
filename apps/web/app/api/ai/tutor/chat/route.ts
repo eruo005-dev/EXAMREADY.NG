@@ -41,7 +41,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
 import { logAiCall } from '@/lib/ai/client';
-import { AI_MODELS } from '@/lib/ai/constants';
+import { AI_MODELS, resolveRouting } from '@/lib/ai/constants';
 import { buildTutorContextMessage, TUTOR_SYSTEM_PROMPT } from '@/lib/ai/prompts/tutor';
 import {
   getProvider,
@@ -91,7 +91,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const routing = AI_MODELS.tutor;
+  // Tutor is critical (localOptIn=false in constants), so resolveRouting
+  // never demotes it to local even when LOCAL_AI_ENABLED is set.
+  const routing = resolveRouting(AI_MODELS.tutor);
   const primaryConfigured = getProvider(routing.primary.provider).isConfigured();
   const fallbackConfigured =
     routing.fallback !== null && getProvider(routing.fallback.provider).isConfigured();

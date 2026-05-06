@@ -29,7 +29,7 @@ import { studyPlanInputSchema } from '@examready/shared';
 import { and, desc, eq, isNotNull, sql } from 'drizzle-orm';
 
 import { logAiCall } from '@/lib/ai/client';
-import { AI_MODELS } from '@/lib/ai/constants';
+import { AI_MODELS, resolveRouting } from '@/lib/ai/constants';
 import {
   buildStudyPlanUserMessage,
   studyPlanSchema,
@@ -56,7 +56,7 @@ export const POST = defineRoute({
 })(async ({ parsed, user }) => {
   if (!user) throw new Error('user required');
 
-  const routing = AI_MODELS.studyPlan;
+  const routing = resolveRouting(AI_MODELS.studyPlan);
   const primaryConfigured = getProvider(routing.primary.provider).isConfigured();
   const fallbackConfigured =
     routing.fallback !== null && getProvider(routing.fallback.provider).isConfigured();

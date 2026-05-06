@@ -1,15 +1,15 @@
 /**
  * GET /api/health/ai
  *
- * Admin-only liveness probe for the AI providers. Pings both providers
- * with a tiny 4-token request and returns latency + status.
+ * Admin-only liveness probe for the AI providers. Pings each active
+ * provider with a tiny 4-token request and returns latency + status.
  *
- * Use this when investigating "is DeepSeek up right now" mid-incident.
- * Does NOT replace Sentry / uptime monitoring — those run automatically;
- * this is an on-demand operator dashboard.
+ * Sprint 6 active providers: deepseek (primary), openai (fallback),
+ * local (opt-in via LOCAL_AI_ENABLED). Anthropic is the disabled stub
+ * and is intentionally NOT probed.
  *
  * Why not public? Two reasons:
- *  1. The probe spends real money (a couple of tokens × 2 providers).
+ *  1. The probe spends real money (a couple of tokens × N providers).
  *  2. Provider liveness is operational signal, not user-facing UX —
  *     surfacing it publicly would invite "is the AI broken?" questions
  *     based on transient blips.
@@ -22,8 +22,9 @@ export const dynamic = 'force-dynamic';
 const PROBE_PROMPT = 'Reply with just the word OK.';
 
 const PROVIDER_PROBES: Array<{ name: ProviderName; model: string }> = [
-  { name: 'anthropic', model: 'claude-haiku-4-5-20251001' },
   { name: 'deepseek', model: 'deepseek-chat' },
+  { name: 'openai', model: 'gpt-4o-mini' },
+  { name: 'local', model: 'auto' },
 ];
 
 type ProbeResult = {
@@ -74,8 +75,18 @@ async function probe(target: { name: ProviderName; model: string }): Promise<Pro
 
 export const GET = defineRoute({ auth: 'admin' })(async () => {
   const results = await Promise.all(PROVIDER_PROBES.map(probe));
-  return ok({
-    checkedAt: new Date().toISOString(),
-    providers: results,
-  });
+  // Treat the response as 200 even if a provider is down — the body has
+  // the per-provider status. The 503 case is reserved for "the primary
+  // (DeepSeek) is down" so external monitoring can page on that
+  // specifically.
+  const deepseek = results.find((r) => r.provider === 'deepseek');
+  const httpStatus = deepseek?.ok ? 200 : 503;
+  return ok(
+    {
+      checkedAt: new Date().toISOString(),
+      providers: results,
+      primaryUp: deepseek?.ok ?? false,
+    },
+    { status: httpStatus },
+  );
 });

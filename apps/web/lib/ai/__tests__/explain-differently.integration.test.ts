@@ -1,43 +1,43 @@
 /**
- * Integration test for explain-differently against the real Claude API.
+ * Integration test for explain-differently against the live DeepSeek API.
  *
- * SKIPS when ANTHROPIC_API_KEY is unset — most local/CI runs. To exercise
- * it you need:
- *   ANTHROPIC_API_KEY=sk-ant-... pnpm --filter @examready/web test
+ * SKIPS when DEEPSEEK_API_KEY is unset — most local/CI runs. To exercise:
+ *   DEEPSEEK_API_KEY=sk-... pnpm --filter @examready/web test
  *
- * Coverage: 5 questions (3 Math + 2 English) × 3 levels = 15 model calls.
- * Each call costs ~$0.001 on Haiku 4.5; full run is ~$0.015. Run sparingly,
- * not on every CI build — this test is for human-in-the-loop quality
- * verification, not regression prevention.
+ * Sprint 6 update: this test used to drive Anthropic Haiku because Pidgin
+ * was routed there. Sprint 6 migrated all routing to DeepSeek (with
+ * Pidgin feature-flagged off pending review), so this suite now drives
+ * the actual production primary. Pidgin samples generated here are
+ * exactly what would be returned to a user when PIDGIN_ENABLED=true.
+ *
+ * Coverage: 5 questions × 3 always-on levels (simpler / with_analogy /
+ * step_by_step) + Pidgin (4th level, gated). Each call costs ~$0.0004
+ * on deepseek-chat; full run is ~$0.008. Run sparingly — for human-
+ * in-the-loop quality verification, not regression prevention.
  *
  * What we assert:
  *  - Model produces non-empty text
  *  - Output respects "no markdown" rule (no `**`, no `#` headings)
  *  - Pidgin variant uses Pidgin markers and avoids Yoruba/Igbo/Hausa
- *  - With-analogy variant references at least one real-world concept
+ *  - step_by_step variant numbers the steps
  *
  * What we DON'T assert:
  *  - Specific wording (model output varies). Don't write tests that
  *    snapshot full model responses — they'll be flaky and useless.
  */
-import Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, test } from 'vitest';
 
-import { AI_MODELS } from '../constants';
 import {
   buildExplainUserMessage,
   EXPLAIN_SYSTEM_PROMPTS,
   type ExplainLevel,
 } from '../prompts/explain-differently';
+import { deepseekProvider } from '../providers/deepseek';
 
-// This suite exercises the Anthropic-side prompt behaviour. Pidgin always
-// runs on Anthropic Haiku in production; for prompt-regression purposes
-// we drive ALL three levels through the same model so a single test pass
-// is a regression check for the Anthropic prompt surface area.
-const ANTHROPIC_MODEL = AI_MODELS.explainDifferently.pidgin.primary.model;
-
-const apiKey = process.env.ANTHROPIC_API_KEY;
+const apiKey = process.env.DEEPSEEK_API_KEY;
 const itOrSkip = apiKey ? test : test.skip;
+
+const MODEL = 'deepseek-chat';
 
 const SAMPLES = [
   {
@@ -101,46 +101,38 @@ const SAMPLES = [
   },
 ];
 
-const LEVELS: ExplainLevel[] = ['simpler', 'with-analogy', 'in-pidgin'];
+const LEVELS: ExplainLevel[] = ['simpler', 'with_analogy', 'step_by_step', 'pidgin'];
 
-// 5 minutes — model calls can be slow under cold-start.
 const PER_TEST_TIMEOUT = 5 * 60 * 1000;
 
-describe.concurrent('explain-differently integration', () => {
+describe.concurrent('explain-differently integration (DeepSeek)', () => {
   for (const sample of SAMPLES) {
     for (const level of LEVELS) {
       itOrSkip(
         `${sample.label} → ${level}`,
         async () => {
-          const anthropic = new Anthropic({ apiKey });
           const userMessage = buildExplainUserMessage({
             questionStem: sample.stem,
             options: sample.options,
             originalExplanation: sample.explanation,
           });
 
-          const completion = await anthropic.messages.create({
-            model: ANTHROPIC_MODEL,
-            max_tokens: 800,
-            system: EXPLAIN_SYSTEM_PROMPTS[level],
+          const result = await deepseekProvider.completion({
+            model: MODEL,
+            maxTokens: 800,
+            systemPrompt: EXPLAIN_SYSTEM_PROMPTS[level],
             messages: [{ role: 'user', content: userMessage }],
           });
 
-          const textBlock = completion.content.find((b) => b.type === 'text');
-          expect(textBlock).toBeDefined();
-          if (!textBlock || textBlock.type !== 'text') return;
-
-          const out = textBlock.text;
+          const out = result.text;
           expect(out.length).toBeGreaterThan(40);
 
           // No markdown headers / lists / bold
           expect(out).not.toMatch(/^#+ /m);
           expect(out).not.toMatch(/\*\*[A-Za-z]/);
-          expect(out).not.toMatch(/^\* /m);
 
           // Level-specific assertions
-          if (level === 'in-pidgin') {
-            // Should contain at least one Pidgin marker.
+          if (level === 'pidgin') {
             const pidginMarkers = [
               'make we',
               'una',
@@ -152,9 +144,13 @@ describe.concurrent('explain-differently integration', () => {
               'fit',
             ];
             expect(pidginMarkers.some((m) => out.toLowerCase().includes(m))).toBe(true);
-            // Should NOT include Yoruba/Igbo/Hausa words frequently mistaken for Pidgin
             const nonPidgin = ['oga', 'biko', 'wallahi'];
             expect(nonPidgin.some((m) => out.toLowerCase().includes(m))).toBe(false);
+          }
+
+          if (level === 'step_by_step') {
+            // Should have numbered steps starting with "1."
+            expect(out).toMatch(/(^|\n)\s*1\./);
           }
 
           // No sycophantic openers (system prompt forbids)

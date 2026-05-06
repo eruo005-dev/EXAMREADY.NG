@@ -1,19 +1,24 @@
 /**
  * Provider factory + fallback wrapper.
  *
- * Call sites resolve a provider by name (`getProvider('anthropic')`) and
- * use the AiProvider interface — they don't import the SDK directly.
+ * Sprint 6 active providers:
+ *  - 'deepseek' — primary for every feature
+ *  - 'openai'   — emergency fallback (gpt-4o-mini)
+ *  - 'local'    — opt-in self-hosted fallback (LOCAL_AI_ENABLED)
  *
- * For features that have a fallback configured, use `runWithFallback` so
- * a transient DeepSeek 5xx automatically retries on Claude (and vice
- * versa) without each call site reimplementing the try/catch dance.
+ * 'anthropic' is a stub that always reports unconfigured (see
+ * providers/anthropic.ts). It's kept in the factory map only so older
+ * ai_usage_log rows with provider='anthropic' typecheck against the
+ * union; it's never selected by routing in active features.
  *
- * The Pidgin path is the lone exception: it has `fallback: null` in the
- * routing config, so `runWithFallback` rethrows the primary's error
- * without ever calling DeepSeek. That's deliberate — see lib/ai/README.md.
+ * For features with a fallback configured, callers use `runWithFallback`
+ * so a transient DeepSeek 5xx automatically retries on OpenAI without
+ * each call site reimplementing the try/catch dance.
  */
 import { anthropicProvider } from './anthropic';
 import { deepseekProvider } from './deepseek';
+import { localProvider } from './local';
+import { openaiProvider } from './openai';
 import { type AiProvider, ProviderError, type ProviderName } from './types';
 
 export type { AiProvider, ProviderName } from './types';
@@ -29,8 +34,10 @@ export {
 } from './types';
 
 const PROVIDERS: Record<ProviderName, AiProvider> = {
-  anthropic: anthropicProvider,
   deepseek: deepseekProvider,
+  openai: openaiProvider,
+  local: localProvider,
+  anthropic: anthropicProvider, // disabled stub — see providers/anthropic.ts
 };
 
 export function getProvider(name: ProviderName): AiProvider {

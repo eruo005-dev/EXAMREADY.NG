@@ -26,6 +26,9 @@ export const apiErrorCodes = [
   'WEBHOOK_SIGNATURE_INVALID',
   'BAD_GATEWAY',
   'INTERNAL_ERROR',
+  // Sprint 6 additions
+  'FEATURE_DISABLED', // env-flag-gated feature (e.g. Pidgin) is currently off
+  'INSUFFICIENT_DATA', // Predicted Score requires N+ submitted answers
 ] as const;
 export type ApiErrorCode = (typeof apiErrorCodes)[number];
 

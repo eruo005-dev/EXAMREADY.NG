@@ -1,8 +1,15 @@
 /**
- * "Explain differently" — three modes for re-explaining a question's
- * solution. The Pidgin variant is the differentiator: most Nigerian
- * students think faster in Pidgin than in textbook English, but no
- * Nigerian exam-prep platform offers Pidgin explanations.
+ * "Explain differently" — four modes for re-explaining a question's solution.
+ *
+ * Sprint 6 update:
+ *  - Levels are now snake_case for DB consistency: `simpler`, `with_analogy`,
+ *    `step_by_step`, `pidgin`. (Sprint 5 used kebab-case `with-analogy` /
+ *    `in-pidgin`; migration 0008 renames the underlying column values.)
+ *  - `step_by_step` is a NEW level added to fill the UX gap left by hiding
+ *    the Pidgin option behind PIDGIN_ENABLED.
+ *  - `pidgin` is feature-flagged off by default (see PIDGIN_ENABLED in
+ *    .env.example). The prompt and routing remain so it can be turned
+ *    back on once a Nigerian-fluent human verifies sample quality.
  *
  * Each prompt is constructed dynamically with the question + correct
  * answer + original explanation as context. The model only rewrites,
@@ -10,7 +17,7 @@
  * original explanation, which would let it propagate any errors).
  */
 
-export type ExplainLevel = 'simpler' | 'with-analogy' | 'in-pidgin';
+export type ExplainLevel = 'simpler' | 'with_analogy' | 'step_by_step' | 'pidgin';
 
 export type ExplainPromptInput = {
   questionStem: string;
@@ -58,7 +65,20 @@ STYLE: USE A CONCRETE ANALOGY.
 - The analogy must be MEANINGFUL, not decorative — if it doesn't
   illuminate the concept, drop it and use plain explanation instead.`;
 
-const IN_PIDGIN_SYSTEM = `${SHARED_CONSTRAINTS}
+const STEP_BY_STEP_SYSTEM = `${SHARED_CONSTRAINTS}
+
+STYLE: NUMBERED STEPS.
+- Break the explanation into numbered steps, written as plain text
+  ("1. ", "2. ", etc., NOT a markdown list).
+- MAXIMUM 6 steps. If you need more, you're explaining too granularly —
+  collapse trivial steps.
+- Each step is ONE sentence. No sub-steps, no parentheticals longer
+  than three words.
+- The first step states what we're solving FOR.
+- The last step states the answer.
+- No preamble before step 1 and no recap after the last step.`;
+
+const PIDGIN_SYSTEM = `${SHARED_CONSTRAINTS}
 
 STYLE: NIGERIAN PIDGIN ENGLISH.
 - Use authentic Nigerian Pidgin (NOT Jamaican Patois or West African
@@ -95,8 +115,9 @@ STYLE: NIGERIAN PIDGIN ENGLISH.
 
 export const EXPLAIN_SYSTEM_PROMPTS: Record<ExplainLevel, string> = {
   simpler: SIMPLER_SYSTEM,
-  'with-analogy': WITH_ANALOGY_SYSTEM,
-  'in-pidgin': IN_PIDGIN_SYSTEM,
+  with_analogy: WITH_ANALOGY_SYSTEM,
+  step_by_step: STEP_BY_STEP_SYSTEM,
+  pidgin: PIDGIN_SYSTEM,
 };
 
 /**
@@ -127,3 +148,6 @@ ${input.originalExplanation}
 Re-explain the solution in the requested style. Output the explanation
 text only — no preamble, no "Here is...", no markdown.`;
 }
+
+/** Pidgin runtime gate — true when the operator has explicitly enabled it. */
+export const PIDGIN_ENABLED = (): boolean => process.env.PIDGIN_ENABLED === 'true';

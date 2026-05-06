@@ -29,13 +29,21 @@ import {
 import { Loader2, Sparkles, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 
-type Level = 'simpler' | 'with-analogy' | 'in-pidgin';
+type Level = 'simpler' | 'with_analogy' | 'step_by_step' | 'pidgin';
 
 const LEVEL_LABELS: Record<Level, string> = {
   simpler: 'Simpler English',
-  'with-analogy': 'With an analogy',
-  'in-pidgin': 'In Pidgin',
+  with_analogy: 'With an analogy',
+  step_by_step: 'Step-by-step',
+  pidgin: 'In Pidgin',
 };
+
+// Sprint 6: Pidgin is feature-flagged off pending Nigerian-fluent human
+// review of sample quality. The server gates the API endpoint on
+// PIDGIN_ENABLED; this client mirror controls whether the UI option is
+// even surfaced. Read from NEXT_PUBLIC_PIDGIN_ENABLED so it ships with
+// the bundle and we don't need a fetch to know.
+const PIDGIN_VISIBLE = process.env.NEXT_PUBLIC_PIDGIN_ENABLED === 'true';
 
 type AiState =
   | { kind: 'idle' }
@@ -153,10 +161,15 @@ export function ExplanationCard({
               <DropdownMenuItem onClick={() => explainAt('simpler')}>
                 Simpler English
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => explainAt('with-analogy')}>
+              <DropdownMenuItem onClick={() => explainAt('with_analogy')}>
                 With an analogy
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => explainAt('in-pidgin')}>In Pidgin</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => explainAt('step_by_step')}>
+                Step-by-step
+              </DropdownMenuItem>
+              {PIDGIN_VISIBLE && (
+                <DropdownMenuItem onClick={() => explainAt('pidgin')}>In Pidgin</DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

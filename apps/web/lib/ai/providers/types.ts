@@ -13,7 +13,19 @@
  * across every future provider too.
  */
 
-export type ProviderName = 'anthropic' | 'deepseek';
+/**
+ * Provider names recognised by the abstraction.
+ *
+ * Sprint 6 migration:
+ *  - 'deepseek' is the primary for every feature
+ *  - 'openai' is the emergency fallback (gpt-4o-mini)
+ *  - 'local' is the opt-in self-hosted fallback for non-critical features
+ *  - 'anthropic' is registered for backwards compatibility with stored
+ *    ai_usage_log rows (where older calls have provider='anthropic'),
+ *    but the provider itself is COMMENTED OUT in lib/ai/providers/anthropic.ts
+ *    and not registered in the factory. Code stays for future re-introduction.
+ */
+export type ProviderName = 'deepseek' | 'openai' | 'local' | 'anthropic';
 
 export type ChatMessage = {
   role: 'user' | 'assistant';

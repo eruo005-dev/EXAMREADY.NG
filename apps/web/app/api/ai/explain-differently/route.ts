@@ -1,16 +1,20 @@
 /**
  * POST /api/ai/explain-differently
  *
- * Re-explains a question's solution in one of three styles:
- *   - simpler          : plain English, junior-secondary register
- *   - with-analogy     : maps the concept onto a Nigerian everyday analogy
- *   - in-pidgin        : authentic Nigerian Pidgin English  ← the moat
+ * Re-explains a question's solution in one of four styles:
+ *   - simpler       : plain English, junior-secondary register
+ *   - with_analogy  : Nigerian everyday analogy
+ *   - step_by_step  : numbered, max 6 steps, one sentence each (Sprint 6 NEW)
+ *   - pidgin        : authentic Nigerian Pidgin (FEATURE-FLAGGED OFF
+ *                     until human review — gated by PIDGIN_ENABLED env)
  *
- * Provider routing (Sprint 5):
- *   - simpler / with-analogy → DeepSeek primary, Claude Haiku 4.5 fallback
- *   - in-pidgin              → Claude Haiku 4.5 primary, NO fallback
- *     (DeepSeek's Pidgin is unverified — silently swapping providers
- *     would degrade the moat without anyone noticing)
+ * Provider routing (Sprint 6):
+ *   - All four levels → DeepSeek-V3 primary, OpenAI gpt-4o-mini fallback
+ *   - With LOCAL_AI_ENABLED=true: simpler / with_analogy / step_by_step
+ *     try the local server first (Pidgin is excluded — moat features
+ *     don't get routed to anything but the canonical primary).
+ *   - Pidgin still has no fallback — even when enabled, a primary
+ *     failure surfaces 503 to the client rather than silently swap.
  *
  * The original explanation is the source of truth — the model RESTATES,
  * never re-derives. This avoids the model second-guessing the original
@@ -24,10 +28,11 @@ import { explainDifferentlyInputSchema } from '@examready/shared';
 import { eq, inArray } from 'drizzle-orm';
 
 import { logAiCall } from '@/lib/ai/client';
-import { AI_MODELS, explainLevelToRoutingKey } from '@/lib/ai/constants';
+import { AI_MODELS, explainLevelToRoutingKey, resolveRouting } from '@/lib/ai/constants';
 import {
   buildExplainUserMessage,
   EXPLAIN_SYSTEM_PROMPTS,
+  PIDGIN_ENABLED,
 } from '@/lib/ai/prompts/explain-differently';
 import { getProvider, ProviderError, runWithFallback } from '@/lib/ai/providers';
 import { checkAiQuota } from '@/lib/ai/quota';
@@ -49,8 +54,23 @@ export const POST = defineRoute({
 })(async ({ parsed, user }) => {
   if (!user) throw new Error('user required');
 
+  // Pidgin gate — feature-flagged off pending Nigerian-fluent reviewer
+  // sign-off on output samples (see PIDGIN_SAMPLES.md). 404 with a
+  // FEATURE_DISABLED code so the client can route the user toward the
+  // other styles cleanly. The UI hides the option when
+  // NEXT_PUBLIC_PIDGIN_ENABLED is unset, but a hostile client could
+  // still send the request — this is the load-bearing gate.
+  if (parsed.level === 'pidgin' && !PIDGIN_ENABLED()) {
+    throw new ApiError(
+      'FEATURE_DISABLED',
+      'Pidgin explanations are not currently available. Try Simpler English, Step-by-step, or With an analogy.',
+      404,
+    );
+  }
+
   const routingKey = explainLevelToRoutingKey(parsed.level);
-  const routing = AI_MODELS.explainDifferently[routingKey];
+  const featureRouting = AI_MODELS.explainDifferently[routingKey];
+  const routing = resolveRouting(featureRouting);
 
   // Verify the primary provider is configured. If not, AND there's no
   // configured fallback either, we have to refuse the call up front.
@@ -185,11 +205,11 @@ export const POST = defineRoute({
 
     // Pidgin path with no fallback: surface as 503 so the UI can suggest
     // a different style. Other paths reach here only when both primary
-    // AND fallback failed — same 502 we returned before the abstraction.
+    // AND fallback failed.
     if (routing.fallback === null) {
       throw new ApiError(
         'BAD_GATEWAY',
-        'Pidgin explanation is temporarily unavailable. Try Simpler English or With an analogy instead.',
+        'Pidgin explanation is temporarily unavailable. Try Simpler English, Step-by-step, or With an analogy instead.',
         503,
       );
     }

@@ -8,28 +8,32 @@
  */
 import { describe, expect, test } from 'vitest';
 
-import {
-  buildExplainUserMessage,
-  EXPLAIN_SYSTEM_PROMPTS,
-} from '../prompts/explain-differently';
+import { buildExplainUserMessage, EXPLAIN_SYSTEM_PROMPTS } from '../prompts/explain-differently';
 import { buildGenerateQuestionsUserMessage } from '../prompts/generate-questions';
 import { buildStudyPlanUserMessage } from '../prompts/study-plan';
 import { buildTutorContextMessage, TUTOR_SYSTEM_PROMPT } from '../prompts/tutor';
 
 describe('explain-differently prompts', () => {
-  test('all three system prompts share the same forbidding-rules block', () => {
+  test('all four system prompts share the same forbidding-rules block', () => {
     // Constraint: every variant must include "Do not change the correct answer"
     // since the model rewrites, not re-derives.
-    for (const level of ['simpler', 'with-analogy', 'in-pidgin'] as const) {
+    for (const level of ['simpler', 'with_analogy', 'step_by_step', 'pidgin'] as const) {
       expect(EXPLAIN_SYSTEM_PROMPTS[level]).toContain('Do not change the correct answer');
       expect(EXPLAIN_SYSTEM_PROMPTS[level]).toContain('PLAIN TEXT only');
     }
   });
 
+  test('step_by_step prompt enforces the numbered-step contract', () => {
+    const sbs = EXPLAIN_SYSTEM_PROMPTS.step_by_step;
+    expect(sbs).toMatch(/numbered steps/i);
+    expect(sbs).toMatch(/MAXIMUM 6 steps/i);
+    expect(sbs).toMatch(/ONE sentence/i);
+  });
+
   test('pidgin prompt explicitly forbids non-Pidgin language slipping in', () => {
     // The Pidgin variant is the moat — make sure the prompt is explicit
     // about the failure modes (Jamaican Patois, Yoruba/Igbo/Hausa words).
-    const pidgin = EXPLAIN_SYSTEM_PROMPTS['in-pidgin'];
+    const pidgin = EXPLAIN_SYSTEM_PROMPTS.pidgin;
     expect(pidgin).toContain('Nigerian Pidgin');
     expect(pidgin).toMatch(/NOT Jamaican/i);
     expect(pidgin).toMatch(/Yoruba/);
@@ -39,7 +43,7 @@ describe('explain-differently prompts', () => {
   });
 
   test('pidgin prompt names the register with concrete examples', () => {
-    const pidgin = EXPLAIN_SYSTEM_PROMPTS['in-pidgin'];
+    const pidgin = EXPLAIN_SYSTEM_PROMPTS.pidgin;
     // Authentic Nigerian Pidgin markers should be present as exemplars
     expect(pidgin).toContain('make we');
     expect(pidgin).toContain('una');
@@ -123,9 +127,7 @@ describe('tutor prompt', () => {
   test('context message truncates very long stems in the mistake list', () => {
     const longStem = 'x'.repeat(200);
     const ctx = buildTutorContextMessage({
-      recentMistakes: [
-        { stem: longStem, theirAnswer: 'A', correctAnswer: 'B', daysAgo: 1 },
-      ],
+      recentMistakes: [{ stem: longStem, theirAnswer: 'A', correctAnswer: 'B', daysAgo: 1 }],
     });
     expect(ctx).toContain('xxx…'); // truncation marker
     expect(ctx.length).toBeLessThan(800); // sanity: not pasting the whole stem

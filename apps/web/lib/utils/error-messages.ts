@@ -17,7 +17,8 @@ export type ApiErrorPayload = {
   nextAvailableAt?: string;
 };
 
-const fallback = 'Something went wrong on our end. Try again, or get help on WhatsApp from the contact page.';
+const fallback =
+  'Something went wrong on our end. Try again, or get help on WhatsApp from the contact page.';
 
 const formatRelativeTime = (iso: string): string => {
   const ms = new Date(iso).getTime() - Date.now();
@@ -33,10 +34,11 @@ const formatRelativeTime = (iso: string): string => {
 };
 
 const TRANSLATIONS: Record<ApiErrorCode, (e: ApiErrorPayload) => string> = {
-  VALIDATION_ERROR: () => 'Please double-check the form — something doesn\'t look right.',
+  VALIDATION_ERROR: () => "Please double-check the form — something doesn't look right.",
   UNAUTHORIZED: () => 'Sign in to continue.',
-  FORBIDDEN: () => 'You don\'t have access to this. If this looks wrong, message us on WhatsApp.',
-  NOT_FOUND: () => 'We couldn\'t find that. The link might be old or the item may have been removed.',
+  FORBIDDEN: () => "You don't have access to this. If this looks wrong, message us on WhatsApp.",
+  NOT_FOUND: () =>
+    "We couldn't find that. The link might be old or the item may have been removed.",
   CONFLICT: (e) => e.message ?? 'That action collides with something else. Try refreshing.',
   RATE_LIMITED: (e) => {
     const seconds = e.retryAfterSeconds ?? 60;
@@ -51,9 +53,14 @@ const TRANSLATIONS: Record<ApiErrorCode, (e: ApiErrorPayload) => string> = {
     return 'Free plan limit reached. Upgrade to Pro for unlimited access.';
   },
   PAYMENT_REQUIRED: () => 'Your subscription has lapsed. Renew to continue with this feature.',
-  WEBHOOK_SIGNATURE_INVALID: () => 'Security check failed. Try again — if this keeps happening, contact support.',
+  WEBHOOK_SIGNATURE_INVALID: () =>
+    'Security check failed. Try again — if this keeps happening, contact support.',
   BAD_GATEWAY: () => 'A network partner is having trouble. Wait a minute and try again.',
   INTERNAL_ERROR: () => fallback,
+  FEATURE_DISABLED: (e) =>
+    e.message ?? "This feature isn't currently enabled. Try a different option from the menu.",
+  INSUFFICIENT_DATA: (e) =>
+    e.message ?? 'Take a few more practice questions to unlock this feature.',
 };
 
 export function userFacingErrorMessage(error: unknown): string {
