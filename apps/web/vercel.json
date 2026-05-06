@@ -1,0 +1,39 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/daily-reminders",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-summary",
+      "schedule": "0 19 * * 0"
+    },
+    {
+      "path": "/api/cron/streak-rollover",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/subscription-check",
+      "schedule": "0 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(*)"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.google.com https://js.paystack.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://api.paystack.co https://api.ng.termii.com https://*.posthog.com https://*.sentry.io; frame-src 'self' https://*.google.com https://*.googlesyndication.com https://js.paystack.co"
+        }
+      ]
+    }
+  ]
+}

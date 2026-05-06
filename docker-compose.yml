@@ -1,0 +1,59 @@
+# Local development services. Production uses Supabase (Postgres) and
+# Upstash (Redis); this compose file is dev-only.
+#
+# Usage:
+#   docker compose up -d           # boot all services
+#   docker compose ps              # status
+#   docker compose logs -f         # tail logs
+#   docker compose down            # stop, keep volumes
+#   docker compose down -v         # stop + delete volumes (full reset)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: examready-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: examready
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: examready-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: examready-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: examready-dev-master-key
+    ports:
+      - "7700:7700"
+    volumes:
+      - meili-data:/meili_data
+
+volumes:
+  postgres-data:
+  redis-data:
+  meili-data:
