@@ -1,0 +1,11 @@
+node_modules
+.next
+.turbo
+dist
+out
+build
+coverage
+.pnpm-store
+pnpm-lock.yaml
+*.tsbuildinfo
+packages/db/migrations/**/*.sql
