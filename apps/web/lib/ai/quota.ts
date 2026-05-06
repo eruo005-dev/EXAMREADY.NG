@@ -18,7 +18,7 @@ import { getRedis } from '../redis';
 
 import { countAiCallsToday } from './client';
 
-export type AiFeature = 'tutor_chat' | 'explain_differently' | 'study_plan';
+export type AiFeature = 'tutor_chat' | 'explain_differently' | 'study_plan' | 'ai_examiner';
 
 export type TierKey = 'free' | 'basic' | 'pro';
 
@@ -58,6 +58,14 @@ const DAILY_CAPS: Record<AiFeature, Record<TierKey, number>> = {
     basic: 5,
     pro: Number.MAX_SAFE_INTEGER,
   },
+  ai_examiner: {
+    // Sprint 6 — theory grading is the most expensive AI call (~$0.004/grade).
+    // Free tier 2/day so students can try the moat before paying;
+    // pro 20/day to support full mock-exam-prep workflows.
+    free: 2,
+    basic: 5,
+    pro: 20,
+  },
 };
 
 /**
@@ -69,6 +77,10 @@ const THROUGHPUT_LIMITS: Record<AiFeature, { max: number; window: '10 s' | '1 m'
   tutor_chat: { max: 5, window: '10 s' },
   explain_differently: { max: 5, window: '10 s' },
   study_plan: { max: 2, window: '1 m' },
+  // Theory grading is slow on the reasoner model — students typically
+  // wait 10-20s for a response, so spam isn't really possible. 1/min
+  // is enough to dampen accidental double-submits without frustrating users.
+  ai_examiner: { max: 1, window: '1 m' },
 };
 
 const throughputBuckets = new Map<AiFeature, Ratelimit>();
