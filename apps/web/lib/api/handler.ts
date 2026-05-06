@@ -200,6 +200,11 @@ function handleError(e: unknown): Response {
 
   // eslint-disable-next-line no-console
   console.error('[api] Unhandled error:', e);
+  // Fire-and-forget Sentry capture. The dynamic import keeps Sentry out
+  // of the bundle when DSN unset; missing module path falls through.
+  void import('../observability/sentry').then(({ initSentryServer, captureError }) =>
+    initSentryServer().then(() => captureError(e)),
+  ).catch(() => undefined);
   return err('INTERNAL_ERROR', 'Internal server error', 500);
 }
 

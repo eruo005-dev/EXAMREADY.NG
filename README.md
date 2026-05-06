@@ -347,6 +347,55 @@ Before applying:
 
 The admin dashboard (later sprint) will have a **kill switch** to globally disable ads if AdSense flags the account.
 
+## Observability
+
+### Sentry (errors)
+
+Server- and client-side error tracking. Wired into the API handler error
+boundary via `apps/web/lib/observability/sentry.ts` — every unhandled
+error fires `captureException` with PII redacted via `redactPii()`. Set
+`SENTRY_DSN` (server) and `NEXT_PUBLIC_SENTRY_DSN` (client) to enable;
+missing keys = no-op, no errors shipped anywhere.
+
+What's filtered before send:
+- `event.user` reduced to `{ id }` only — email, IP, username blanked
+- Request headers stripped entirely (auth tokens live there)
+- Request body recursively redacted by key (`phone`, `email`, etc.) and
+  by content (Nigerian E.164 phones and email regex match → `[redacted]`)
+- App contexts redacted; runtime + OS contexts kept (PII-free)
+
+Dashboard: see Sentry project settings → Issues. Recommend setting up
+alerts for new-issue and regression notifications to a Slack channel.
+
+### PostHog (product analytics)
+
+Browser-side event tracking + feature flags. Wired in
+`apps/web/lib/observability/posthog.ts`. Tracks ONLY this allowlist of
+events:
+
+- `signup_started`, `signup_completed`, `onboarding_completed`
+- `attempt_started`, `attempt_submitted`
+- `subscription_purchased`
+- `ad_impression`
+- `ai_tutor_query`
+- `consent_choice`
+
+`autocapture` and `session_recording` are **disabled** — explicit events
+only, no surprise data. `sanitize_properties` runs every property bag
+through `redactPii()` before it leaves the browser.
+
+User identification uses Supabase `auth.users.id` (random UUID) only —
+never phone, email, or name. Calling `resetIdentity()` on logout clears
+the distinct id.
+
+Feature flags: use `useFeatureFlag('flag-name')`. Defaults to false until
+PostHog responds, so design components to treat false + undefined the
+same.
+
+### Required env vars
+- `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`
+- `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
+
 ## Operations runbook
 
 ### Health check
