@@ -10,6 +10,15 @@ out
 build
 *.tsbuildinfo
 
+# Next.js auto-generated
+next-env.d.ts
+
+# next-pwa generated service worker (regenerated on every build)
+apps/*/public/sw.js
+apps/*/public/sw.js.map
+apps/*/public/workbox-*.js
+apps/*/public/workbox-*.js.map
+
 # Test coverage
 coverage
 
