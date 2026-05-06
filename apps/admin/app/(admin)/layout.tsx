@@ -1,5 +1,8 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
+
+import { getAdminUser } from '@/lib/auth/server';
 
 // Route groups (parentheses) are stripped from the URL by Next.js, so the
 // actual paths are /dashboard, /questions, etc.
@@ -12,13 +15,20 @@ const NAV_ITEMS = [
   { href: '/bursaries', label: 'Bursaries' },
 ] as const;
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const auth = await getAdminUser();
+  if (!auth.ok) {
+    if (auth.reason === 'unauthenticated') redirect('/login');
+    redirect('/login?error=not_admin');
+  }
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-60 border-r bg-muted/30 p-4">
         <Link href="/dashboard" className="font-semibold">
           ExamReady <span className="text-primary">Admin</span>
         </Link>
+        <p className="mt-1 text-xs text-muted-foreground">{auth.user.email}</p>
         <nav className="mt-6 space-y-1 text-sm">
           {NAV_ITEMS.map((item) => (
             <Link
