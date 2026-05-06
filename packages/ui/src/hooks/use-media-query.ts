@@ -1,0 +1,23 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+/**
+ * Track a CSS media query (e.g. "(min-width: 768px)") in React state.
+ * Returns false on the server / before hydration to avoid layout flashes.
+ */
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia(query);
+    setMatches(media.matches);
+
+    const listener = (event: MediaQueryListEvent) => setMatches(event.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [query]);
+
+  return matches;
+}
