@@ -353,5 +353,346 @@
       { "label": "D", "content": "make a lot of noise" }
     ],
     "explanation": "An idiom meaning to talk about unimportant things instead of addressing the real issue."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "stem": "Choose the word nearest in meaning to: 'PERSEVERANCE'",
+    "options": [
+      { "label": "A", "content": "laziness" },
+      { "label": "B", "content": "persistence", "isCorrect": true },
+      { "label": "C", "content": "anger" },
+      { "label": "D", "content": "happiness" }
+    ],
+    "explanation": "'Perseverance' means continued effort to achieve something despite difficulties. 'Persistence' is its closest synonym."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "Choose the word OPPOSITE in meaning to: 'GENEROUS'",
+    "options": [
+      { "label": "A", "content": "kind" },
+      { "label": "B", "content": "stingy", "isCorrect": true },
+      { "label": "C", "content": "wealthy" },
+      { "label": "D", "content": "honest" }
+    ],
+    "explanation": "'Generous' means willing to give freely. Its opposite is 'stingy' — unwilling to give or spend."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "Choose the word nearest in meaning to: 'PROCRASTINATE'",
+    "options": [
+      { "label": "A", "content": "delay", "isCorrect": true },
+      { "label": "B", "content": "complete" },
+      { "label": "C", "content": "celebrate" },
+      { "label": "D", "content": "demolish" }
+    ],
+    "explanation": "'Procrastinate' means to delay or postpone, especially out of laziness. Common JAMB vocabulary — memorise this set."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 3,
+    "stem": "Choose the word nearest in meaning to: 'DILIGENT'",
+    "options": [
+      { "label": "A", "content": "careless" },
+      { "label": "B", "content": "rude" },
+      { "label": "C", "content": "hardworking", "isCorrect": true },
+      { "label": "D", "content": "wealthy" }
+    ],
+    "explanation": "'Diligent' means showing careful and persistent effort. The closest meaning is 'hardworking'."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2019,
+    "source": "JAMB 2019",
+    "difficulty": 3,
+    "stem": "Choose the word OPPOSITE in meaning to: 'COMMENCE'",
+    "options": [
+      { "label": "A", "content": "begin" },
+      { "label": "B", "content": "start" },
+      { "label": "C", "content": "conclude", "isCorrect": true },
+      { "label": "D", "content": "continue" }
+    ],
+    "explanation": "'Commence' means to begin or start. Its opposite is 'conclude' — to end."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 2,
+    "stem": "The students _____ studying when the bell rang.",
+    "options": [
+      { "label": "A", "content": "was" },
+      { "label": "B", "content": "were", "isCorrect": true },
+      { "label": "C", "content": "is" },
+      { "label": "D", "content": "are" }
+    ],
+    "explanation": "Subject-verb agreement: 'students' is plural, requiring the plural past-tense auxiliary 'were'. Past-continuous tense ('were studying') describes an ongoing action interrupted by another past event ('the bell rang')."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "Each of the boys _____ his book.",
+    "options": [
+      { "label": "A", "content": "have lost" },
+      { "label": "B", "content": "has lost", "isCorrect": true },
+      { "label": "C", "content": "had lose" },
+      { "label": "D", "content": "have losing" }
+    ],
+    "explanation": "When 'each of' precedes a plural noun, the verb still agrees with 'each' (singular) — so use 'has lost', not 'have lost'. Common mistake: people hear 'boys' and pluralise. Look at the actual subject."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "She is one of those who _____ always punctual.",
+    "options": [
+      { "label": "A", "content": "is" },
+      { "label": "B", "content": "are", "isCorrect": true },
+      { "label": "C", "content": "was" },
+      { "label": "D", "content": "be" }
+    ],
+    "explanation": "'Those who are always punctual' — the relative clause refers to 'those' (plural). The full sentence is: She is one of [those who are always punctual]. The verb 'are' agrees with 'those', not 'one'."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 3,
+    "stem": "The teacher, along with the students, _____ to the library.",
+    "options": [
+      { "label": "A", "content": "go" },
+      { "label": "B", "content": "going" },
+      { "label": "C", "content": "goes", "isCorrect": true },
+      { "label": "D", "content": "gone" }
+    ],
+    "explanation": "'Along with' phrases don't change subject number. The subject remains 'the teacher' (singular), so use 'goes'. Watch out for distractor phrases set off by commas."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2019,
+    "source": "JAMB 2019",
+    "difficulty": 4,
+    "stem": "If I _____ the news earlier, I would have helped.",
+    "options": [
+      { "label": "A", "content": "knew" },
+      { "label": "B", "content": "have known" },
+      { "label": "C", "content": "had known", "isCorrect": true },
+      { "label": "D", "content": "would know" }
+    ],
+    "explanation": "Past unreal conditional (third conditional): 'If + past perfect, would have + past participle'. Use 'had known' to express something that didn't happen but might have led to a different outcome."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "stem": "His _____ behaviour shocked everyone at the meeting.",
+    "options": [
+      { "label": "A", "content": "outrageous", "isCorrect": true },
+      { "label": "B", "content": "outraged" },
+      { "label": "C", "content": "outrage" },
+      { "label": "D", "content": "outrageously" }
+    ],
+    "explanation": "An adjective is needed to modify 'behaviour'. 'Outrageous' is the adjective form; 'outraged' would describe a person's emotion (passive); 'outrage' is the noun; 'outrageously' is the adverb."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "The _____ of the lecture was clear and well-organised.",
+    "options": [
+      { "label": "A", "content": "delivery", "isCorrect": true },
+      { "label": "B", "content": "deliver" },
+      { "label": "C", "content": "delivered" },
+      { "label": "D", "content": "delivering" }
+    ],
+    "explanation": "A noun is needed after 'The'. 'Delivery' is the noun form; 'deliver' is the verb; 'delivered' is past tense; 'delivering' is the gerund — also possible but less idiomatic in this context."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 4,
+    "stem": "The arrival of the chief was _____.",
+    "options": [
+      { "label": "A", "content": "imminent", "isCorrect": true },
+      { "label": "B", "content": "eminent" },
+      { "label": "C", "content": "immanent" },
+      { "label": "D", "content": "emanent" }
+    ],
+    "explanation": "'Imminent' means about to happen. 'Eminent' means famous/respected. 'Immanent' means inherent. Easy to confuse — always check the meaning, not just spelling."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "stem": "Identify the figure of speech in: 'Her smile was a ray of sunshine.'",
+    "options": [
+      { "label": "A", "content": "Simile" },
+      { "label": "B", "content": "Metaphor", "isCorrect": true },
+      { "label": "C", "content": "Personification" },
+      { "label": "D", "content": "Hyperbole" }
+    ],
+    "explanation": "A metaphor states one thing IS another (smile = ray of sunshine). A simile would use 'like' or 'as' — 'her smile was LIKE a ray of sunshine'. Personification gives human traits to non-humans."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "'To kick the bucket' means to:",
+    "options": [
+      { "label": "A", "content": "fight someone" },
+      { "label": "B", "content": "die", "isCorrect": true },
+      { "label": "C", "content": "make noise" },
+      { "label": "D", "content": "hurry up" }
+    ],
+    "explanation": "An English idiom meaning to die. The origin is debated but the meaning is well-established. Note: it's informal — don't use it in formal writing."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "Identify the figure of speech in: 'I have told you a thousand times!'",
+    "options": [
+      { "label": "A", "content": "Hyperbole", "isCorrect": true },
+      { "label": "B", "content": "Personification" },
+      { "label": "C", "content": "Metaphor" },
+      { "label": "D", "content": "Simile" }
+    ],
+    "explanation": "Hyperbole is deliberate exaggeration for emphasis. The speaker hasn't literally said it 1,000 times — they're emphasising frustration."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 4,
+    "stem": "Which word has the same vowel sound as the underlined letters in 'shEEp'?",
+    "options": [
+      { "label": "A", "content": "ship" },
+      { "label": "B", "content": "field", "isCorrect": true },
+      { "label": "C", "content": "step" },
+      { "label": "D", "content": "shed" }
+    ],
+    "explanation": "'Sheep' has the long /iː/ sound. 'Field' shares this sound. 'Ship' has the short /ɪ/. 'Step' and 'shed' use /e/. Long vs short 'i' is the most-tested vowel pair in JAMB oral English."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 4,
+    "stem": "Which word has the stress on the first syllable?",
+    "options": [
+      { "label": "A", "content": "DICTionary", "isCorrect": true },
+      { "label": "B", "content": "imPORTance" },
+      { "label": "C", "content": "comMITment" },
+      { "label": "D", "content": "exCITEment" }
+    ],
+    "explanation": "'Dictionary' stresses the first syllable: DIC-tion-ar-y. The others stress the second syllable. Tip: most multi-syllable nouns ending in -tion/-ity have stress on the syllable before that suffix."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 4,
+    "stem": "Which of the following words has a different consonant sound from the others?",
+    "options": [
+      { "label": "A", "content": "thought" },
+      { "label": "B", "content": "thin" },
+      { "label": "C", "content": "this", "isCorrect": true },
+      { "label": "D", "content": "thick" }
+    ],
+    "explanation": "'This' uses the voiced /ð/ sound (vibrate vocal cords). 'Thought', 'thin', and 'thick' all use the unvoiced /θ/ sound. Voiced vs unvoiced 'th' is a frequent JAMB question."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "passage": "Climate change is no longer a distant concern; it is reshaping daily life across Africa. In Nigeria, rising temperatures and erratic rainfall have disrupted agricultural cycles, particularly for smallholder farmers in the north. Lake Chad has shrunk by over 90% since the 1960s, displacing communities and intensifying competition for water. Adaptation strategies — drought-resistant crops, community-based water harvesting, and renewable energy — are no longer optional but essential.",
+    "stem": "According to the passage, what has happened to Lake Chad since the 1960s?",
+    "options": [
+      { "label": "A", "content": "It has expanded by 90%" },
+      { "label": "B", "content": "It has remained the same size" },
+      { "label": "C", "content": "It has shrunk by over 90%", "isCorrect": true },
+      { "label": "D", "content": "It has been completely refilled" }
+    ],
+    "explanation": "The passage explicitly states 'Lake Chad has shrunk by over 90% since the 1960s'. Always quote the exact wording from the passage when possible — comprehension questions reward precision over inference."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "passage": "Climate change is no longer a distant concern; it is reshaping daily life across Africa. In Nigeria, rising temperatures and erratic rainfall have disrupted agricultural cycles, particularly for smallholder farmers in the north. Lake Chad has shrunk by over 90% since the 1960s, displacing communities and intensifying competition for water. Adaptation strategies — drought-resistant crops, community-based water harvesting, and renewable energy — are no longer optional but essential.",
+    "stem": "The passage suggests that adaptation strategies are:",
+    "options": [
+      { "label": "A", "content": "optional luxuries for wealthy farmers" },
+      { "label": "B", "content": "necessary for survival", "isCorrect": true },
+      { "label": "C", "content": "only relevant in southern Nigeria" },
+      { "label": "D", "content": "outdated approaches" }
+    ],
+    "explanation": "The passage's final sentence calls them 'no longer optional but essential' — directly equivalent to 'necessary for survival'. The other options either contradict the passage or are not supported by it."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "passage": "Coding bootcamps have transformed Nigeria's tech landscape. Programmes like Decagon and AltSchool train thousands of young Nigerians annually in software engineering, data science, and product management. Graduates often earn dollar-denominated salaries from international clients, contributing significantly to remittance flows. However, critics argue that bootcamps emphasise speed over depth, leaving graduates without the foundational computer-science knowledge needed for senior roles.",
+    "stem": "What is the main criticism of coding bootcamps mentioned in the passage?",
+    "options": [
+      { "label": "A", "content": "They are too expensive" },
+      { "label": "B", "content": "They emphasise speed over depth", "isCorrect": true },
+      { "label": "C", "content": "They only train for tech roles" },
+      { "label": "D", "content": "Their graduates earn too little" }
+    ],
+    "explanation": "The passage states: 'critics argue that bootcamps emphasise speed over depth'. This is a direct restatement question — match the option to the wording in the passage."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 4,
+    "passage": "Coding bootcamps have transformed Nigeria's tech landscape. Programmes like Decagon and AltSchool train thousands of young Nigerians annually in software engineering, data science, and product management. Graduates often earn dollar-denominated salaries from international clients, contributing significantly to remittance flows. However, critics argue that bootcamps emphasise speed over depth, leaving graduates without the foundational computer-science knowledge needed for senior roles.",
+    "stem": "We can infer from the passage that bootcamp graduates contribute to Nigeria's economy mainly through:",
+    "options": [
+      { "label": "A", "content": "tax payments" },
+      { "label": "B", "content": "domestic spending" },
+      { "label": "C", "content": "foreign-currency remittances", "isCorrect": true },
+      { "label": "D", "content": "founding bootcamps themselves" }
+    ],
+    "explanation": "The passage says graduates 'earn dollar-denominated salaries from international clients, contributing significantly to remittance flows'. Inference questions reward connecting the dots between sentences."
+  },
+  {
+    "topic": "summary",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 4,
+    "passage": "Adire is a traditional Yoruba textile dyed using indigo and resist-dyeing techniques. Once practiced primarily in Abeokuta, the craft is enjoying a renaissance among Nigerian designers who blend traditional motifs with contemporary fashion. Younger artisans use new resist agents like cassava starch alongside the centuries-old method, expanding the palette while preserving the cultural significance.",
+    "stem": "Which option best summarises the passage?",
+    "options": [
+      { "label": "A", "content": "Adire is dying out due to modern fashion" },
+      { "label": "B", "content": "Adire blends Yoruba tradition with contemporary innovation", "isCorrect": true },
+      { "label": "C", "content": "Cassava starch has replaced indigo in adire production" },
+      { "label": "D", "content": "Abeokuta is the only place adire is now made" }
+    ],
+    "explanation": "The passage describes traditional roots AND modern innovations — option B captures both. Options A and C contradict the passage; option D oversimplifies (Abeokuta was historical, not exclusive)."
   }
 ]
