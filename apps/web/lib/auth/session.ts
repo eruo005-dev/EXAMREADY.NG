@@ -10,7 +10,6 @@
 import { users, type User } from '@examready/db/schema';
 import { eq } from 'drizzle-orm';
 
-
 import { db } from '../db';
 
 import { createServerClient } from './server';
@@ -64,7 +63,9 @@ export async function getAuthedUser(req: Request): Promise<AuthedUser> {
   if (!profile) {
     // Trigger should have created this row. If we hit this, something has
     // gone wrong with the auth-link migration in this environment.
-    throw new Error(`Profile missing for auth.users.id=${user.id} — check on_auth_user_created trigger`);
+    throw new Error(
+      `Profile missing for auth.users.id=${user.id} — check on_auth_user_created trigger`,
+    );
   }
   return { authId: user.id, authEmail: user.email ?? null, profile };
 }
@@ -72,16 +73,27 @@ export async function getAuthedUser(req: Request): Promise<AuthedUser> {
 export async function requireAdmin(req: Request): Promise<AuthedUser> {
   const authed = await getAuthedUser(req);
 
-  // Sprint 0 admin gate: a Supabase user_metadata.role claim of 'admin'.
-  // The admin app dashboard sets this via the service-role API.
+  // Sprint 6 admin gate: read role from `app_metadata.role`, NEVER from
+  // `user_metadata.role`. Why this matters:
+  //
+  //  user_metadata is CLIENT-MUTABLE — any signed-in user can call
+  //  supabase.auth.updateUser({ data: { role: 'admin' } }) and promote
+  //  themselves. We made this mistake in Sprint 0; Sprint 6's audit
+  //  caught it and migrated to app_metadata, which is server-only-
+  //  writable (only callable from the service-role key).
+  //
+  // To make a user admin, an existing admin (or the operator with
+  // service-role access) must call supabase.auth.admin.updateUserById(
+  //   id, { app_metadata: { role: 'admin' } }
+  // ). See LAUNCH_CHECKLIST.md.
   const supabase = createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const role =
-    user?.user_metadata && typeof user.user_metadata === 'object' && 'role' in user.user_metadata
-      ? (user.user_metadata as { role?: string }).role
+    user?.app_metadata && typeof user.app_metadata === 'object' && 'role' in user.app_metadata
+      ? (user.app_metadata as { role?: string }).role
       : undefined;
 
   if (role !== 'admin') {

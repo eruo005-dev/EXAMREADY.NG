@@ -13,6 +13,8 @@
  * - 'webhook' provides per-provider HMAC verification (Paystack, Supabase, Termii)
  *   Webhook handlers never share a "trusted" code path — each verifies its own signature.
  */
+import { timingSafeEqual } from 'node:crypto';
+
 import type { NextRequest } from 'next/server';
 import { ZodError, type ZodTypeAny, type z } from 'zod';
 
@@ -60,13 +62,24 @@ async function readBody(req: NextRequest): Promise<unknown> {
   }
 }
 
+/**
+ * Cron Bearer token verification using `crypto.timingSafeEqual` so the
+ * comparison is constant-time. A naive `===` comparison would short-
+ * circuit on the first byte mismatch and leak the token byte-by-byte
+ * over enough probe attempts. Length-mismatch is short-circuited
+ * before the timing-safe compare because timingSafeEqual requires
+ * equal-length buffers (and the length itself isn't sensitive).
+ */
 function authenticateCron(req: NextRequest): void {
-  const header = req.headers.get('authorization');
+  const header = req.headers.get('authorization') ?? '';
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     throw new ApiError('INTERNAL_ERROR', 'CRON_SECRET not configured', 500);
   }
-  if (header !== `Bearer ${expected}`) {
+  const expectedHeader = `Bearer ${expected}`;
+  const a = Buffer.from(header);
+  const b = Buffer.from(expectedHeader);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     throw new UnauthorizedError('Invalid cron secret');
   }
 }
@@ -202,9 +215,9 @@ function handleError(e: unknown): Response {
   console.error('[api] Unhandled error:', e);
   // Fire-and-forget Sentry capture. The dynamic import keeps Sentry out
   // of the bundle when DSN unset; missing module path falls through.
-  void import('../observability/sentry').then(({ initSentryServer, captureError }) =>
-    initSentryServer().then(() => captureError(e)),
-  ).catch(() => undefined);
+  void import('../observability/sentry')
+    .then(({ initSentryServer, captureError }) => initSentryServer().then(() => captureError(e)))
+    .catch(() => undefined);
   return err('INTERNAL_ERROR', 'Internal server error', 500);
 }
 

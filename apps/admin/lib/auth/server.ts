@@ -1,11 +1,16 @@
 /**
  * Admin Supabase server client. Verifies the user's JWT and confirms
- * user_metadata.role === 'admin'.
+ * `app_metadata.role === 'admin'`.
+ *
+ * Sprint 6 audit fix: this previously read user_metadata.role, which
+ * is CLIENT-MUTABLE in Supabase — any signed-in user could promote
+ * themselves to admin via auth.updateUser({data:{role:'admin'}}).
+ * app_metadata is server-only-writable (service role required).
  *
  * The admin app and the web app share a Supabase project, so the same
  * users.id is the same identity across both. Only users explicitly
- * granted role='admin' (set via service-role API by an existing admin)
- * can sign into the admin dashboard.
+ * granted app_metadata.role='admin' (set via the service-role API by
+ * an operator) can sign into the admin dashboard.
  */
 import { createServerClient as _createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -56,8 +61,8 @@ export async function getAdminUser(): Promise<AdminAuthResult> {
   if (!user) return { ok: false, reason: 'unauthenticated' };
 
   const role =
-    user.user_metadata && typeof user.user_metadata === 'object' && 'role' in user.user_metadata
-      ? (user.user_metadata as { role?: string }).role
+    user.app_metadata && typeof user.app_metadata === 'object' && 'role' in user.app_metadata
+      ? (user.app_metadata as { role?: string }).role
       : undefined;
 
   if (process.env.DEV_AUTH_BYPASS === 'true') {
