@@ -24,6 +24,19 @@ export default function AboutPage() {
       <p className="mt-4 text-muted-foreground">
         We&apos;re a small team. We pay our staff in Naira. Our payment gateway is Paystack. Our customer support runs on WhatsApp Business. We aren&apos;t building a Silicon Valley product translated for Nigeria — we&apos;re building for Nigeria from the ground up.
       </p>
+
+      <h2 className="mt-10 text-xl font-semibold">From the founder</h2>
+      {/* PLACEHOLDER: edit this paragraph with the real founder story before launch. */}
+      <p className="mt-4 text-muted-foreground">
+        I sat JAMB twice. The first time I scored 198 with a thick textbook and a tired tutor.
+        The second time I scored 287 because I&apos;d worked through three years of past papers
+        on a borrowed laptop in an internet café. The difference wasn&apos;t intelligence — it
+        was access. ExamReady is the platform I needed back then: real past questions,
+        explanations that actually explain, working offline on a cheap Android phone, billed
+        in Naira. If we get this right, the next generation of Nigerian students won&apos;t need
+        a prep café and a borrowed laptop to compete.
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">— [Founder Name], CEO &amp; co-founder</p>
     </article>
   );
 }

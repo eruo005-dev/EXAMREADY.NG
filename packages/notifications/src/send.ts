@@ -21,6 +21,7 @@ import type { TemplateKey } from '@examready/shared';
 
 import { sendResend } from './providers/resend';
 import { sendTermii } from './providers/termii';
+import { renderEmailHtml } from './templates/email-html';
 import { getEmailSubject, renderTemplate } from './templates/registry';
 
 export type Channel = 'whatsapp' | 'sms' | 'email';
@@ -76,10 +77,12 @@ export async function send(input: SendInput): Promise<SendResult> {
     }
 
     const subject = getEmailSubject(input.templateKey) ?? 'ExamReady';
+    const html = renderEmailHtml({ subject, body: rendered.body, preheader: undefined });
     const r = await sendResend({
       to: input.to.email!,
       subject,
       body: rendered.body,
+      html,
     });
     return r.ok
       ? { ok: true, channelUsed: 'email', providerMessageId: r.providerMessageId }

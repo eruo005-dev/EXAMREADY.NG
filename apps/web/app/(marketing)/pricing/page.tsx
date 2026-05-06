@@ -57,6 +57,7 @@ const plans = [
     description: 'Best value — pay once, save ~58%.',
     features: [
       'All Pro features',
+      'Save ₦35,000 vs monthly',
       'One yearly payment',
       'Lock in current price',
     ],

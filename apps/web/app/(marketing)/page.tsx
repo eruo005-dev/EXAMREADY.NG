@@ -16,7 +16,8 @@ export default function LandingPage() {
               🇳🇬 Trusted by Nigerian students
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Pass <span className="text-primary">JAMB, WAEC, NECO</span> with confidence
+              Pass <span className="text-primary">JAMB</span>. Pass{' '}
+              <span className="text-primary">WAEC</span>. Pass everything.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
               AI-powered practice, real past questions, and full mock CBT exams — all in Naira, all built for Nigerian networks. Works on 2G.

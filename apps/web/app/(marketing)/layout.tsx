@@ -21,6 +21,9 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             <Link href="/pricing" className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
               Pricing
             </Link>
+            <Link href="/faq" className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+              FAQ
+            </Link>
             <Link href="/about" className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
               About
             </Link>
@@ -63,6 +66,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
               <p className="text-sm font-semibold">Company</p>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/about">About</Link></li>
+                <li><Link href="/faq">FAQ</Link></li>
                 <li><Link href="/contact">Contact</Link></li>
               </ul>
             </div>
