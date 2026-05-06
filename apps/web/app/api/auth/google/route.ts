@@ -4,10 +4,10 @@
  * Trades a Google ID token (obtained client-side) for a Supabase session.
  * The on_auth_user_created trigger creates public.users on first sign-in.
  */
-import { eq } from 'drizzle-orm';
 
 import { users } from '@examready/db/schema';
 import { googleSignInSchema } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { ApiError, defineRoute, ok, UnauthorizedError } from '@/lib/api/handler';
 import { createServerClient } from '@/lib/auth/server';

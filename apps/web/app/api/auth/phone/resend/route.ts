@@ -12,8 +12,8 @@
 import { resendOtpSchema } from '@examready/shared';
 
 import { ApiError, defineRoute, ForbiddenError, ok } from '@/lib/api/handler';
-import { applyRateLimit } from '@/lib/ratelimit';
 import { createServerClient } from '@/lib/auth/server';
+import { applyRateLimit } from '@/lib/ratelimit';
 import { getRedis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';

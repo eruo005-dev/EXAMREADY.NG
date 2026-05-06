@@ -1,6 +1,6 @@
+import { EmptyState } from '@examready/ui';
 import { Video } from 'lucide-react';
 
-import { EmptyState } from '@examready/ui';
 
 export default function VideosPage() {
   return (

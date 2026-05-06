@@ -1,6 +1,6 @@
+import type { ApiErrorCode } from '@examready/shared';
 import { NextResponse } from 'next/server';
 
-import type { ApiErrorCode } from '@examready/shared';
 
 export const ok = <T>(data: T, init?: ResponseInit): Response =>
   NextResponse.json({ ok: true, data }, init);

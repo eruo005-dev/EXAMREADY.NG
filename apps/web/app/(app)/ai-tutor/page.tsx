@@ -1,6 +1,6 @@
+import { EmptyState } from '@examready/ui';
 import { Sparkles } from 'lucide-react';
 
-import { EmptyState } from '@examready/ui';
 
 export default function AiTutorPage() {
   return (

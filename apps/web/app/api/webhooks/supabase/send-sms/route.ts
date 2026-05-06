@@ -11,15 +11,13 @@
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { NextResponse } from 'next/server';
-
+import { notificationLog , users } from '@examready/db/schema';
 import { send } from '@examready/notifications';
 import { supabaseSendSmsHookSchema } from '@examready/shared';
-
-import { notificationLog } from '@examready/db/schema';
-import { db } from '@/lib/db';
 import { eq } from 'drizzle-orm';
-import { users } from '@examready/db/schema';
+import { NextResponse } from 'next/server';
+
+import { db } from '@/lib/db';
 import { getRedis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';

@@ -1,8 +1,8 @@
 'use client';
 
+import { Badge } from '@examready/ui';
 import { useEffect, useState } from 'react';
 
-import { Badge } from '@examready/ui';
 
 export function Timer({
   startedAt,

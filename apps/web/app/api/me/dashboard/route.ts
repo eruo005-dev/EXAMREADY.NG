@@ -13,8 +13,6 @@
  * - 5 most recent submitted attempts
  * - Single most recent in-progress attempt (for "resume" widget)
  */
-import { and, desc, eq, isNotNull, isNull, sql, sum } from 'drizzle-orm';
-
 import {
   attemptAnswers,
   attempts,
@@ -25,6 +23,8 @@ import {
   targetExams,
   topics as topicsTable,
 } from '@examready/db/schema';
+import { and, desc, eq, isNotNull, isNull, sql, sum } from 'drizzle-orm';
+
 
 import { defineRoute, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';

@@ -1,9 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Flag } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -13,8 +9,13 @@ import {
   RadioGroupItem,
   useToast,
 } from '@examready/ui';
+import { Flag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 
 import { AdSlot } from '@/components/ads/AdSlot';
+
 import { Timer } from './Timer';
 
 type QuestionPayload = {

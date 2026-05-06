@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@examready/ui';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@examready/ui';
 
 const CONSENT_KEY = 'examready.ndpr.consent.v1';
 

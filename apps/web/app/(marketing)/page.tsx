@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { ArrowRight, BookOpen, MessageCircle, Shield, Trophy, Wifi } from 'lucide-react';
-
 import { Badge, Button, Card, CardContent } from '@examready/ui';
+import { ArrowRight, BookOpen, MessageCircle, Shield, Trophy, Wifi } from 'lucide-react';
+import Link from 'next/link';
+
 
 const exams = ['JAMB UTME', 'WAEC', 'NECO', 'Post-UTME', 'GCE', 'NABTEB', 'JUPEB'];
 

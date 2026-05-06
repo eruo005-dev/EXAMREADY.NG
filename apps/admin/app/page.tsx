@@ -1,6 +1,6 @@
+import { Button, Card, CardContent } from '@examready/ui';
 import Link from 'next/link';
 
-import { Button, Card, CardContent } from '@examready/ui';
 
 export default function AdminLandingPage() {
   return (
@@ -14,7 +14,7 @@ export default function AdminLandingPage() {
             </p>
           </div>
           <Button asChild className="w-full">
-            <Link href="/(admin)/dashboard">Continue</Link>
+            <Link href="/dashboard">Continue</Link>
           </Button>
           <p className="text-xs text-muted-foreground">
             Sprint 0 admin shell — bulk question import, user management, broadcast composer, and bursary review queue land in subsequent sprints.

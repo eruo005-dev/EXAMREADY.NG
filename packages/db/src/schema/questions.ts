@@ -45,9 +45,10 @@ export const questions = pgTable(
      * App code never writes it. Meilisearch sync (later sprint) reads this
      * single field instead of concatenating client-side.
      */
+    // STORED is the only mode Postgres supports for generated columns and is
+    // what drizzle-kit emits by default. The generated migration confirms it.
     searchText: text('search_text').generatedAlwaysAs(
       sql`stem || ' ' || COALESCE(passage, '') || ' ' || COALESCE(explanation, '')`,
-      { mode: 'stored' },
     ),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

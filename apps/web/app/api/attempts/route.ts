@@ -8,7 +8,6 @@
  *
  * Inserts the attempt + N empty attempt_answers in a single transaction.
  */
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 
 import {
   attemptAnswers,
@@ -17,6 +16,7 @@ import {
   questions,
 } from '@examready/db/schema';
 import { startAttemptSchema } from '@examready/shared';
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 
 import {
   defineRoute,

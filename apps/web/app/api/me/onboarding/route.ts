@@ -5,12 +5,11 @@
  * target_exams rows, sets onboarding_completed_at = now(). Triggers
  * the welcome notification (queued, not awaited).
  */
-import { eq } from 'drizzle-orm';
 
 import { targetExams, users } from '@examready/db/schema';
-import { onboardingInputSchema } from '@examready/shared';
-
 import { send } from '@examready/notifications';
+import { onboardingInputSchema } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { defineRoute, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';

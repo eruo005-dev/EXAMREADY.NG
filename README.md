@@ -65,6 +65,21 @@ docker-compose.yml  Local Postgres + Redis + Meilisearch
 
 Target: clone-to-running in 30 minutes.
 
+### Verified setup
+
+The following toolchain has been confirmed end-to-end (`pnpm install`, `pnpm db:generate`, `pnpm typecheck`, `pnpm lint`, `pnpm build` all green):
+
+| Tool | Version | Notes |
+|---|---|---|
+| Node | 20.x or newer (tested on 25.8.2) | `.nvmrc` pins to 20 |
+| pnpm | 9.12.0 | Pinned via `packageManager` field |
+| Docker | 29.x (tested on 29.3.1) | For local Postgres + Redis + Meilisearch |
+| Turborepo | 2.9.x | Auto-installed by pnpm |
+| Next.js | 14.2.x | App Router |
+| Drizzle Kit | 0.25.x | Generates migrations |
+
+`pnpm install` resolves ~1050 packages and completes in ≈60 seconds on a warm cache, ≈3 minutes cold.
+
 ### Prerequisites
 
 - **Node.js 20+** (`.nvmrc` pins major version)

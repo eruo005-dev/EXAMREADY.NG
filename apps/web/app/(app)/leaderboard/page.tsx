@@ -1,6 +1,6 @@
+import { EmptyState } from '@examready/ui';
 import { Trophy } from 'lucide-react';
 
-import { EmptyState } from '@examready/ui';
 
 export default function LeaderboardPage() {
   return (

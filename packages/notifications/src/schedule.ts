@@ -10,8 +10,8 @@
  * In Sprint 0 the QStash handler endpoint is a stub. The scheduling helper
  * is wired so cron handlers (also stubs in Sprint 0) compile against it.
  */
-import { Client } from '@upstash/qstash';
 import type { TemplateKey } from '@examready/shared';
+import { Client } from '@upstash/qstash';
 
 import type { Channel } from './send';
 

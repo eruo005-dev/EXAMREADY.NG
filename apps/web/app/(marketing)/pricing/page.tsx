@@ -1,9 +1,8 @@
-import Link from 'next/link';
-import { Check } from 'lucide-react';
-
-import { Badge, Button, Card, CardContent } from '@examready/ui';
-
 import { PRICING, formatKoboAsNaira } from '@examready/shared';
+import { Badge, Button, Card, CardContent } from '@examready/ui';
+import { Check } from 'lucide-react';
+import Link from 'next/link';
+
 
 const plans = [
   {

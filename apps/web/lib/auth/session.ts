@@ -7,9 +7,9 @@
  * the profile row exists for any auth.users row, so a missing profile is an
  * internal error, not a 404.
  */
+import { users, type User } from '@examready/db/schema';
 import { eq } from 'drizzle-orm';
 
-import { users, type User } from '@examready/db/schema';
 
 import { db } from '../db';
 

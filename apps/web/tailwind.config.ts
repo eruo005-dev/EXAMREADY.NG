@@ -1,6 +1,6 @@
+import preset from '@examready/tailwind-config/preset';
 import type { Config } from 'tailwindcss';
 
-import preset from '@examready/tailwind-config/preset';
 
 export default {
   presets: [preset],

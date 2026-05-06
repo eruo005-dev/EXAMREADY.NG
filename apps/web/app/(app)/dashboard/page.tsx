@@ -1,9 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, Flame, Target, Trophy } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -12,6 +8,9 @@ import {
   EmptyState,
   Skeleton,
 } from '@examready/ui';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowRight, BookOpen, Flame, Target, Trophy } from 'lucide-react';
+import Link from 'next/link';
 
 import { AdSlot } from '@/components/ads/AdSlot';
 

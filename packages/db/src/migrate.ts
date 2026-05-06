@@ -58,9 +58,10 @@ async function applyExtras(sql: postgres.Sql): Promise<void> {
 
   const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
   for (const file of files) {
-    const [{ count }] = await sql`
+    const rows = await sql<{ count: number }[]>`
       SELECT count(*)::int FROM public._extras_applied WHERE filename = ${file}
     `;
+    const count = rows[0]?.count ?? 0;
     if (count > 0) {
       log(`extra (skip — already applied): ${file}`);
       continue;

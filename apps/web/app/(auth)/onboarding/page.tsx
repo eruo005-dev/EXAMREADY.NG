@@ -1,8 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
+import { NIGERIAN_STATES } from '@examready/shared';
 import {
   Button,
   Card,
@@ -18,8 +16,10 @@ import {
   SelectValue,
   useToast,
 } from '@examready/ui';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { NIGERIAN_STATES } from '@examready/shared';
+
 
 type Exam = { id: string; name: string; slug: string };
 

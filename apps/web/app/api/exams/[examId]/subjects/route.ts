@@ -1,13 +1,13 @@
+import { subjects } from '@examready/db/schema';
 import { asc, eq } from 'drizzle-orm';
 
-import { subjects } from '@examready/db/schema';
 
 import { defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
 
 export const revalidate = 3600;
 
-export const GET = defineRoute<{ examId: string }>({ auth: 'public' })(async ({ params }) => {
+export const GET = defineRoute({ auth: 'public' })<{ examId: string }>(async ({ params }) => {
   // The dynamic [examId] is a UUID — Zod-validate manually since the
   // path params don't go through bodySchema. Bad UUIDs get a 404 not a 400
   // (consistent with Postgres returning 0 rows for malformed casts).

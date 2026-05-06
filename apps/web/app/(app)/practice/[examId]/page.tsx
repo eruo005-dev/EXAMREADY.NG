@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
-import { eq } from 'drizzle-orm';
-
 import { exams, users } from '@examready/db/schema';
+import { eq } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
 
-import { PracticeStarter } from './PracticeStarter';
 import { createServerClient } from '@/lib/auth/server';
 import { db } from '@/lib/db';
+
+import { PracticeStarter } from './PracticeStarter';
 
 export default async function PracticeExamPage({ params }: { params: { examId: string } }) {
   const supabase = createServerClient();

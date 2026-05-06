@@ -5,11 +5,11 @@
  * notification_log with template_key prefixed `_test:` so analytics can
  * filter test traffic out.
  */
-import { eq } from 'drizzle-orm';
 
 import { notificationLog, users } from '@examready/db/schema';
 import { send } from '@examready/notifications';
 import { adminTestNotificationSchema } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';

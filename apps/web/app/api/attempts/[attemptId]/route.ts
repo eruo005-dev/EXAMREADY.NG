@@ -7,16 +7,16 @@
  * Verifies attempt ownership. Returns 404 if not yours or not submitted —
  * we don't expose the existence of in-progress attempts via GET.
  */
+import { attemptAnswers, attempts, options, questions, topics } from '@examready/db/schema';
 import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 
-import { attemptAnswers, attempts, options, questions, topics } from '@examready/db/schema';
 
 import { defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = defineRoute<{ attemptId: string }>({ auth: 'user' })(async ({ params, user }) => {
+export const GET = defineRoute({ auth: 'user' })<{ attemptId: string }>(async ({ params, user }) => {
   if (!user) throw new Error('user required');
   if (!/^[0-9a-f-]{36}$/i.test(params.attemptId)) {
     throw new NotFoundError('Attempt not found');

@@ -1,6 +1,6 @@
+import { Button, Card, CardContent } from '@examready/ui';
 import Link from 'next/link';
 
-import { Button, Card, CardContent } from '@examready/ui';
 
 const WA_NUMBER = '2348012345678'; // Replace with real WhatsApp Business number
 const WA_MESSAGE = encodeURIComponent("Hi, I'd like help with ExamReady.ng");

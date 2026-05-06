@@ -1,6 +1,6 @@
+import { Card, CardContent } from '@examready/ui';
 import Link from 'next/link';
 
-import { Card, CardContent } from '@examready/ui';
 
 export default function SettingsPage() {
   return (

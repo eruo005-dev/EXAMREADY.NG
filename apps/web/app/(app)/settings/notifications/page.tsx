@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import {
   Button,
   Card,
@@ -11,6 +9,8 @@ import {
   Label,
   useToast,
 } from '@examready/ui';
+import { useEffect, useState } from 'react';
+
 
 type Prefs = {
   whatsappOptedIn: boolean;

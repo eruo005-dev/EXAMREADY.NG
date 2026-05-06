@@ -1,6 +1,6 @@
+import { exams } from '@examready/db/schema';
 import { asc, eq } from 'drizzle-orm';
 
-import { exams } from '@examready/db/schema';
 
 import { defineRoute, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';

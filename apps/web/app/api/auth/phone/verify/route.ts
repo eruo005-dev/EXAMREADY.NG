@@ -5,15 +5,15 @@
  * trigger has already populated public.users (if first-time auth), so
  * we fetch that profile row and return it alongside the session.
  */
-import { eq } from 'drizzle-orm';
 
 import { users } from '@examready/db/schema';
 import { verifyOtpSchema } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { ApiError, defineRoute, ok, UnauthorizedError } from '@/lib/api/handler';
-import { applyRateLimit } from '@/lib/ratelimit';
 import { createServerClient } from '@/lib/auth/server';
 import { db } from '@/lib/db';
+import { applyRateLimit } from '@/lib/ratelimit';
 
 export const dynamic = 'force-dynamic';
 

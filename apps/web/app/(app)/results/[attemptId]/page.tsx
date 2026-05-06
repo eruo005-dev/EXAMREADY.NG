@@ -1,10 +1,9 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { Badge, Card, CardContent, EmptyState, Skeleton } from '@examready/ui';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, XCircle } from 'lucide-react';
-
-import { Badge, Card, CardContent, EmptyState, Skeleton } from '@examready/ui';
+import { useParams } from 'next/navigation';
 
 import { AdSlot } from '@/components/ads/AdSlot';
 

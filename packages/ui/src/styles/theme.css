@@ -7,91 +7,89 @@
  * Light mode: clean white with deep green accents.
  * Dark mode: warm dark slate (not pure black — easier on eyes for long
  * study sessions in low light).
+ *
+ * Note: this file is imported BEFORE the @tailwind directives by each app's
+ * globals.css, so we cannot use @layer here. Plain CSS rules at root scope.
  */
 
-@layer base {
-  :root {
-    /* Brand */
-    --brand-green: 145 78% 27%;       /* #0F7A3D */
-    --brand-gold: 44 99% 48%;         /* #F4B400 */
+:root {
+  /* Brand */
+  --brand-green: 145 78% 27%;       /* #0F7A3D */
+  --brand-gold: 44 99% 48%;         /* #F4B400 */
 
-    /* Surfaces */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+  /* Surfaces */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
-    /* Roles */
-    --primary: var(--brand-green);
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: var(--brand-gold);
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 145 63% 35%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
+  /* Roles */
+  --primary: var(--brand-green);
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: var(--brand-gold);
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 145 63% 35%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 222 47% 11%;
 
-    /* UI */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: var(--brand-green);
-    --radius: 0.625rem;
-  }
+  /* UI */
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: var(--brand-green);
+  --radius: 0.625rem;
+}
 
-  .dark {
-    --background: 222 33% 9%;
-    --foreground: 210 40% 98%;
-    --card: 222 33% 12%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 33% 12%;
-    --popover-foreground: 210 40% 98%;
+.dark {
+  --background: 222 33% 9%;
+  --foreground: 210 40% 98%;
+  --card: 222 33% 12%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 33% 12%;
+  --popover-foreground: 210 40% 98%;
 
-    --primary: 145 65% 45%;
-    --primary-foreground: 222 33% 9%;
-    --secondary: 217 19% 18%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 19% 18%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 44 99% 55%;
-    --accent-foreground: 222 33% 9%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 145 55% 50%;
-    --success-foreground: 222 33% 9%;
-    --warning: 38 92% 60%;
-    --warning-foreground: 222 33% 9%;
+  --primary: 145 65% 45%;
+  --primary-foreground: 222 33% 9%;
+  --secondary: 217 19% 18%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 19% 18%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 44 99% 55%;
+  --accent-foreground: 222 33% 9%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 145 55% 50%;
+  --success-foreground: 222 33% 9%;
+  --warning: 38 92% 60%;
+  --warning-foreground: 222 33% 9%;
 
-    --border: 217 19% 22%;
-    --input: 217 19% 22%;
-    --ring: 145 65% 45%;
-  }
+  --border: 217 19% 22%;
+  --input: 217 19% 22%;
+  --ring: 145 65% 45%;
+}
 
-  * {
-    border-color: hsl(var(--border));
-  }
+* {
+  border-color: hsl(var(--border));
+}
 
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: 'rlig' 1, 'calt' 1;
-    -webkit-font-smoothing: antialiased;
-  }
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* Reading content (question stems, explanations) gets the serif font for
-   * better long-form readability. Apply via class="font-serif". */
-
-  /* Larger tap targets on touch devices — accessibility (WCAG 2.5.5). */
-  @media (pointer: coarse) {
-    button, a[role='button'], input[type='button'], input[type='submit'] {
-      min-height: 44px;
-    }
+/* Larger tap targets on touch devices — accessibility (WCAG 2.5.5). */
+@media (pointer: coarse) {
+  button, a[role='button'], input[type='button'], input[type='submit'] {
+    min-height: 44px;
   }
 }

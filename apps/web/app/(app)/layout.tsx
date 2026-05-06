@@ -1,11 +1,10 @@
+import { users } from '@examready/db/schema';
+import { eq } from 'drizzle-orm';
+import { Home, Settings, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { BookOpen, Home, Settings, Trophy, Users } from 'lucide-react';
 
-import { eq } from 'drizzle-orm';
-
-import { users } from '@examready/db/schema';
 
 import { AdSenseScript } from '@/components/ads/AdSenseScript';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';

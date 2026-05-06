@@ -1,6 +1,6 @@
+import { topics, type Topic } from '@examready/db/schema';
 import { asc, eq } from 'drizzle-orm';
 
-import { topics, type Topic } from '@examready/db/schema';
 
 import { defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
@@ -40,7 +40,7 @@ function buildTree(rows: Topic[]): TopicTree[] {
   return roots;
 }
 
-export const GET = defineRoute<{ subjectId: string }>({ auth: 'public' })(async ({ req, params }) => {
+export const GET = defineRoute({ auth: 'public' })<{ subjectId: string }>(async ({ req, params }) => {
   if (!/^[0-9a-f-]{36}$/i.test(params.subjectId)) {
     throw new NotFoundError('Subject not found');
   }

@@ -1,6 +1,6 @@
+import { EmptyState } from '@examready/ui';
 import { Users } from 'lucide-react';
 
-import { EmptyState } from '@examready/ui';
 
 export default function GroupsPage() {
   return (

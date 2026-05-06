@@ -13,16 +13,15 @@
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { eq } from 'drizzle-orm';
 
 import {
   payments,
   subscriptions,
   users,
   type Subscription,
-  type SubscriptionStatusEnum,
 } from '@examready/db/schema';
 import { PRICING } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 
@@ -218,7 +217,7 @@ export async function handleInvoicePaymentFailed(data: PaystackInvoiceData): Pro
   // Move into grace state. Subscription-check cron decides expiry.
   await db
     .update(subscriptions)
-    .set({ status: 'grace' as SubscriptionStatusEnum['enumValues'][number] })
+    .set({ status: 'grace' })
     .where(eq(subscriptions.paystackSubscriptionCode, data.subscription.subscription_code));
 }
 

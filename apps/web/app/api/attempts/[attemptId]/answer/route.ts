@@ -8,10 +8,10 @@
  * Rate limit bumped to 1200/min user-level for fast-paced mock CBTs
  * (multi-section exams produce sustained ~10/sec writes).
  */
-import { and, eq } from 'drizzle-orm';
 
 import { attemptAnswers, attempts } from '@examready/db/schema';
 import { submitAnswerSchema } from '@examready/shared';
+import { and, eq } from 'drizzle-orm';
 
 import {
   ConflictError,
@@ -23,11 +23,11 @@ import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export const PATCH = defineRoute<{ attemptId: string }>({
+export const PATCH = defineRoute({
   auth: 'user',
   rateLimit: 'answer',
   bodySchema: submitAnswerSchema,
-})(async ({ params, parsed, user }) => {
+})<{ attemptId: string }>(async ({ params, parsed, user }) => {
   if (!user) throw new Error('user required');
   if (!/^[0-9a-f-]{36}$/i.test(params.attemptId)) {
     throw new NotFoundError('Attempt not found');

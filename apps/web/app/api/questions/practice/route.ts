@@ -9,10 +9,10 @@
  * bodySchema because GET requests carry params in the URL — we parse
  * the URL ourselves.
  */
-import { and, eq, inArray, sql } from 'drizzle-orm';
 
 import { options, questions } from '@examready/db/schema';
 import { practiceQuerySchema } from '@examready/shared';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 
 import { defineRoute, ok, ValidationError } from '@/lib/api/handler';
 import { db } from '@/lib/db';

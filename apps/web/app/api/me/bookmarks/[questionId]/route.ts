@@ -1,13 +1,13 @@
+import { bookmarks, questions } from '@examready/db/schema';
 import { and, eq } from 'drizzle-orm';
 
-import { bookmarks, questions } from '@examready/db/schema';
 
 import { defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = defineRoute<{ questionId: string }>({ auth: 'user' })(async ({ params, user }) => {
+export const POST = defineRoute({ auth: 'user' })<{ questionId: string }>(async ({ params, user }) => {
   if (!user) throw new Error('user required');
   if (!/^[0-9a-f-]{36}$/i.test(params.questionId)) throw new NotFoundError('Question not found');
 
@@ -27,7 +27,7 @@ export const POST = defineRoute<{ questionId: string }>({ auth: 'user' })(async 
   return ok({ bookmarked: true });
 });
 
-export const DELETE = defineRoute<{ questionId: string }>({ auth: 'user' })(async ({ params, user }) => {
+export const DELETE = defineRoute({ auth: 'user' })<{ questionId: string }>(async ({ params, user }) => {
   if (!user) throw new Error('user required');
   if (!/^[0-9a-f-]{36}$/i.test(params.questionId)) throw new NotFoundError('Question not found');
 

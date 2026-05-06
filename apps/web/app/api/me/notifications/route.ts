@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
 
 import { users } from '@examready/db/schema';
 import { notificationPrefsInputSchema } from '@examready/shared';
+import { eq } from 'drizzle-orm';
 
 import { defineRoute, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';

@@ -12,8 +12,6 @@
  * Idempotent: re-submitting returns the same result; we re-read state
  * if submittedAt already set.
  */
-import { and, eq, inArray } from 'drizzle-orm';
-
 import {
   attemptAnswers,
   attempts,
@@ -22,6 +20,8 @@ import {
   readyPointsLog,
   topics,
 } from '@examready/db/schema';
+import { and, eq, inArray } from 'drizzle-orm';
+
 
 import {
   ConflictError,
@@ -40,9 +40,9 @@ function arraysEqualUnordered(a: string[], b: string[]): boolean {
   return sortedA.every((v, i) => v === sortedB[i]);
 }
 
-export const POST = defineRoute<{ attemptId: string }>({
+export const POST = defineRoute({
   auth: 'user',
-})(async ({ params, user }) => {
+})<{ attemptId: string }>(async ({ params, user }) => {
   if (!user) throw new Error('user required');
   if (!/^[0-9a-f-]{36}$/i.test(params.attemptId)) {
     throw new NotFoundError('Attempt not found');

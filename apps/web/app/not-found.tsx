@@ -1,6 +1,6 @@
+import { Button } from '@examready/ui';
 import Link from 'next/link';
 
-import { Button } from '@examready/ui';
 
 export default function NotFound() {
   return (

@@ -1,8 +1,8 @@
 'use client';
 
+import { cn } from '@examready/ui';
 import { useEffect, useRef } from 'react';
 
-import { cn } from '@examready/ui';
 
 type AdSlotProps = {
   /** AdSense data-ad-slot — the slot id from your AdSense dashboard. */

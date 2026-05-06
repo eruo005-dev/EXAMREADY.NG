@@ -19,7 +19,7 @@ import { ZodError, type ZodTypeAny, type z } from 'zod';
 import { getAuthedUser, requireAdmin, type AuthedUser } from '../auth/session';
 import { applyRateLimit, type RateLimitKind } from '../ratelimit';
 
-import { ApiError, ForbiddenError, RateLimitedError, UnauthorizedError, ValidationError } from './errors';
+import { ApiError, RateLimitedError, UnauthorizedError, ValidationError } from './errors';
 import { err, ok } from './responses';
 
 export type AuthMode = 'public' | 'user' | 'admin' | 'cron' | 'webhook';
@@ -41,13 +41,6 @@ export type RouteHandlerArgs<TParsed, TParams> = {
   params: TParams;
   parsed: TParsed;
   user?: AuthedUser;
-};
-
-export type DefineRouteConfig<S extends ZodTypeAny | undefined> = {
-  auth: AuthMode;
-  rateLimit?: RateLimitKind;
-  bodySchema?: S;
-  querySchema?: ZodTypeAny;
 };
 
 function getClientIp(req: NextRequest): string {
@@ -81,36 +74,29 @@ function authenticateCron(req: NextRequest): void {
 /**
  * defineRoute — produces a Next.js Route Handler bound to the given config.
  *
- * Usage:
- *   export const POST = defineRoute({
+ * S is inferred from `config.bodySchema`. TParams is specified on the
+ * inner call (after currying) so the user can supply it without breaking
+ * inference of S:
+ *
+ *   export const PATCH = defineRoute({
  *     auth: 'user',
- *     bodySchema: startAttemptSchema,
- *   })(async ({ req, parsed, user }) => {
- *     // …
- *     return ok({ attemptId: '…' });
- *   });
+ *     bodySchema: submitAnswerSchema,
+ *   })<{ attemptId: string }>(async ({ params, parsed, user }) => { ... });
+ *
+ * Without a bodySchema, the handler's `parsed` is typed as `undefined`.
+ * Without an explicit TParams generic on the inner call, params defaults
+ * to `Record<string, string>` (any string-keyed dynamic segments).
  */
-export function defineRoute<TParams = Record<string, string>>(config: {
+export function defineRoute<S extends ZodTypeAny | undefined = undefined>(config: {
   auth: AuthMode;
   rateLimit?: RateLimitKind;
-  bodySchema?: undefined;
-  querySchema?: undefined;
-}): (
-  handler: (args: RouteHandlerArgs<undefined, TParams>) => Promise<Response>,
-) => (req: NextRequest, ctx: RouteContext<TParams>) => Promise<Response>;
-export function defineRoute<S extends ZodTypeAny, TParams = Record<string, string>>(config: {
-  auth: AuthMode;
-  rateLimit?: RateLimitKind;
-  bodySchema: S;
+  bodySchema?: S;
   querySchema?: ZodTypeAny;
-}): (
-  handler: (args: RouteHandlerArgs<z.infer<S>, TParams>) => Promise<Response>,
-) => (req: NextRequest, ctx: RouteContext<TParams>) => Promise<Response>;
-export function defineRoute<S extends ZodTypeAny | undefined, TParams = Record<string, string>>(
-  config: DefineRouteConfig<S>,
-) {
-  return function wrap(
-    handler: (args: RouteHandlerArgs<unknown, TParams>) => Promise<Response>,
+}) {
+  return function wrap<TParams = Record<string, string>>(
+    handler: (
+      args: RouteHandlerArgs<S extends ZodTypeAny ? z.infer<S> : undefined, TParams>,
+    ) => Promise<Response>,
   ) {
     return async (req: NextRequest, ctx: RouteContext<TParams>): Promise<Response> => {
       try {
@@ -171,13 +157,15 @@ export function defineRoute<S extends ZodTypeAny | undefined, TParams = Record<s
           }
         }
 
-        // 5. Run handler.
+        // 5. Run handler. The cast is safe — `parsed` is the validated output
+        // of `config.bodySchema` (or undefined when no schema given), which
+        // matches the handler's declared type.
         return await handler({
           req,
           params: ctx.params,
           parsed,
           user,
-        } as RouteHandlerArgs<unknown, TParams>);
+        } as Parameters<typeof handler>[0]);
       } catch (e) {
         return handleError(e);
       }

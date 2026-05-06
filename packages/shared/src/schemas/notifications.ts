@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { NOTIFICATION_TEMPLATES } from '../constants/notification-templates';
+
 import { nigerianPhoneSchema, uuidSchema } from './primitives';
 
 export const notificationChannelSchema = z.enum(['whatsapp', 'sms', 'email', 'push']);

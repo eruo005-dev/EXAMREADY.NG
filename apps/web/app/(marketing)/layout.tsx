@@ -1,7 +1,7 @@
+import { Button } from '@examready/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { Button } from '@examready/ui';
 
 import { ConsentBanner } from '@/components/ads/ConsentBanner';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';

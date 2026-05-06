@@ -100,8 +100,11 @@ export function renderTemplate(
   vars: Record<string, string>,
   options: { pidgin?: boolean } = {},
 ): RenderedTemplate {
-  const tpl = templates[key];
-  const source = options.pidgin && 'pidgin' in tpl && tpl.pidgin ? tpl.pidgin : tpl.body;
+  // Widen to TemplateVariant so optional fields (pidgin, whatsappTemplateId,
+  // emailSubject) are accessible without `in` narrowing — `as const satisfies`
+  // strips them from the inferred literal type.
+  const tpl: TemplateVariant = templates[key];
+  const source = options.pidgin && tpl.pidgin ? tpl.pidgin : tpl.body;
 
   // Vars are passed as { '1': 'Alice', '2': 'JAMB', … } — the numeric keys
   // map to {{1}}, {{2}}.
@@ -112,11 +115,11 @@ export function renderTemplate(
 
   return {
     body,
-    whatsappTemplateId: 'whatsappTemplateId' in tpl ? tpl.whatsappTemplateId : undefined,
+    whatsappTemplateId: tpl.whatsappTemplateId,
   };
 }
 
 export function getEmailSubject(key: TemplateKey): string | undefined {
-  const tpl = templates[key];
-  return 'emailSubject' in tpl ? tpl.emailSubject : undefined;
+  const tpl: TemplateVariant = templates[key];
+  return tpl.emailSubject;
 }
