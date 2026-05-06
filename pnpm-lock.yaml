@@ -220,12 +220,18 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.5.0(postcss@8.5.14)
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
       postcss:
         specifier: ^8.4.47
         version: 8.5.14
       tailwindcss:
         specifier: ^3.4.13
         version: 3.4.19(tsx@4.21.0)(yaml@2.8.4)
+      tsx:
+        specifier: ^4.19.1
+        version: 4.21.0
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
