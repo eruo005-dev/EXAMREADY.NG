@@ -12,6 +12,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
+import { coverageStatusEnum } from './enums';
+
 export const exams = pgTable(
   'exams',
   {
@@ -21,6 +23,7 @@ export const exams = pgTable(
     description: text('description'),
     iconUrl: text('icon_url'),
     isActive: boolean('is_active').notNull().default(true),
+    coverageStatus: coverageStatusEnum('coverage_status').notNull().default('live'),
     sortOrder: smallint('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -28,6 +31,7 @@ export const exams = pgTable(
   (t) => ({
     slugUnique: uniqueIndex('exams_slug_unique').on(t.slug),
     activeSortIdx: index('exams_active_sort_idx').on(t.isActive, t.sortOrder),
+    coverageIdx: index('exams_coverage_idx').on(t.coverageStatus),
   }),
 );
 

@@ -64,3 +64,14 @@ export const referralStatusEnum = pgEnum('referral_status', [
   'qualified',
   'rewarded',
 ]);
+
+/**
+ * Exam coverage status — drives the Phase 1 vs future-launch separation.
+ * `live` exams appear in the practice catalog. `coming_soon` and `planned`
+ * exams show up only on /coming-soon and accept waitlist signups.
+ */
+export const coverageStatusEnum = pgEnum('coverage_status', [
+  'live',
+  'coming_soon',
+  'planned',
+]);

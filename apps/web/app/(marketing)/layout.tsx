@@ -60,6 +60,8 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
                 <li><Link href="/pricing">Pricing</Link></li>
                 <li><Link href="/signup">Get started</Link></li>
                 <li><Link href="/login">Sign in</Link></li>
+                <li><Link href="/coming-soon">Coming soon</Link></li>
+                <li><Link href="/tools/subject-combinations">Free tools</Link></li>
               </ul>
             </div>
             <div>

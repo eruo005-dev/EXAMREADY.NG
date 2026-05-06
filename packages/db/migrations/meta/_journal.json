@@ -29,6 +29,13 @@
       "when": 1778074123657,
       "tag": "0003_bent_wendigo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778075247207,
+      "tag": "0004_pink_shocker",
+      "breakpoints": true
     }
   ]
 }

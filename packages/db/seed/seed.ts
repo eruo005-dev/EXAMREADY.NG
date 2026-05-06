@@ -33,6 +33,8 @@ type ExamSeed = {
   name: string;
   description: string;
   sortOrder: number;
+  isActive?: boolean;
+  coverageStatus?: 'live' | 'coming_soon' | 'planned';
 };
 
 type SubjectSeed = {
@@ -95,7 +97,8 @@ async function seed(): Promise<void> {
         name: e.name,
         description: e.description,
         sortOrder: e.sortOrder,
-        isActive: true,
+        isActive: e.isActive ?? true,
+        coverageStatus: e.coverageStatus ?? 'live',
       })
       .returning({ id: exams.id });
     if (!inserted) throw new Error(`Failed to insert exam: ${e.slug}`);

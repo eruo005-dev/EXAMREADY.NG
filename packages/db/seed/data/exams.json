@@ -3,60 +3,312 @@
     "slug": "jamb-utme",
     "name": "JAMB UTME",
     "description": "Joint Admissions and Matriculation Board Unified Tertiary Matriculation Examination — gateway to Nigerian universities.",
-    "sortOrder": 1
+    "sortOrder": 1,
+    "isActive": true,
+    "coverageStatus": "live"
   },
   {
     "slug": "waec-ssce",
     "name": "WAEC SSCE",
     "description": "West African Senior School Certificate Examination administered by WAEC.",
-    "sortOrder": 2
+    "sortOrder": 2,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
     "slug": "neco-ssce",
     "name": "NECO SSCE",
     "description": "National Examinations Council Senior School Certificate Examination.",
-    "sortOrder": 3
+    "sortOrder": 3,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
-    "slug": "post-utme",
-    "name": "Post-UTME",
-    "description": "University-specific Post-Unified Tertiary Matriculation Examination screening.",
-    "sortOrder": 4
+    "slug": "waec-gce",
+    "name": "WAEC GCE",
+    "description": "WAEC General Certificate Examination — alternative SSCE for private candidates and resits.",
+    "sortOrder": 4,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
-    "slug": "gce",
-    "name": "GCE",
-    "description": "General Certificate of Education — alternative SSCE for private candidates.",
-    "sortOrder": 5
+    "slug": "neco-gce",
+    "name": "NECO GCE",
+    "description": "NECO General Certificate Examination for private candidates.",
+    "sortOrder": 5,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
     "slug": "nabteb",
     "name": "NABTEB",
     "description": "National Business and Technical Examinations Board certificate.",
-    "sortOrder": 6
+    "sortOrder": 6,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "bece",
+    "name": "BECE",
+    "description": "Basic Education Certificate Examination — JSS3 transition exam to senior secondary.",
+    "sortOrder": 7,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "common-entrance",
+    "name": "Common Entrance",
+    "description": "National Common Entrance Examination for entry into Federal Government Colleges.",
+    "sortOrder": 8,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "cambridge-igcse",
+    "name": "Cambridge IGCSE",
+    "description": "International General Certificate of Secondary Education — for students at British curriculum schools.",
+    "sortOrder": 9,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "jupeb",
+    "name": "JUPEB",
+    "description": "Joint Universities Preliminary Examinations Board — direct entry to 200-level.",
+    "sortOrder": 10,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "ijmb",
+    "name": "IJMB",
+    "description": "Interim Joint Matriculation Board — alternative one-year direct-entry programme.",
+    "sortOrder": 11,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "a-level-cambridge",
+    "name": "Cambridge A-Level",
+    "description": "Cambridge International A-Levels — globally recognised pre-university qualification.",
+    "sortOrder": 12,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "post-utme-ui",
+    "name": "Post-UTME — University of Ibadan",
+    "description": "UI Post-UTME screening exam.",
+    "sortOrder": 30,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unilag",
+    "name": "Post-UTME — UNILAG",
+    "description": "University of Lagos Post-UTME screening exam.",
+    "sortOrder": 31,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-oau",
+    "name": "Post-UTME — OAU",
+    "description": "Obafemi Awolowo University Post-UTME screening exam.",
+    "sortOrder": 32,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-uniben",
+    "name": "Post-UTME — UNIBEN",
+    "description": "University of Benin Post-UTME screening exam.",
+    "sortOrder": 33,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-abu",
+    "name": "Post-UTME — ABU Zaria",
+    "description": "Ahmadu Bello University Post-UTME screening exam.",
+    "sortOrder": 34,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-uniport",
+    "name": "Post-UTME — UNIPORT",
+    "description": "University of Port Harcourt Post-UTME screening exam.",
+    "sortOrder": 35,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unn",
+    "name": "Post-UTME — UNN",
+    "description": "University of Nigeria, Nsukka Post-UTME screening exam.",
+    "sortOrder": 36,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unizik",
+    "name": "Post-UTME — UNIZIK",
+    "description": "Nnamdi Azikiwe University Post-UTME screening exam.",
+    "sortOrder": 37,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unijos",
+    "name": "Post-UTME — UNIJOS",
+    "description": "University of Jos Post-UTME screening exam.",
+    "sortOrder": 38,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-futa",
+    "name": "Post-UTME — FUTA",
+    "description": "Federal University of Technology, Akure Post-UTME screening exam.",
+    "sortOrder": 39,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-futminna",
+    "name": "Post-UTME — FUT Minna",
+    "description": "Federal University of Technology, Minna Post-UTME screening exam.",
+    "sortOrder": 40,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-lasu",
+    "name": "Post-UTME — LASU",
+    "description": "Lagos State University Post-UTME screening exam.",
+    "sortOrder": 41,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-oou",
+    "name": "Post-UTME — OOU",
+    "description": "Olabisi Onabanjo University Post-UTME screening exam.",
+    "sortOrder": 42,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-buk",
+    "name": "Post-UTME — BUK",
+    "description": "Bayero University, Kano Post-UTME screening exam.",
+    "sortOrder": 43,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-kasu",
+    "name": "Post-UTME — KASU",
+    "description": "Kaduna State University Post-UTME screening exam.",
+    "sortOrder": 44,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-rsu",
+    "name": "Post-UTME — RSU",
+    "description": "Rivers State University Post-UTME screening exam.",
+    "sortOrder": 45,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-ebsu",
+    "name": "Post-UTME — EBSU",
+    "description": "Ebonyi State University Post-UTME screening exam.",
+    "sortOrder": 46,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-uyo",
+    "name": "Post-UTME — UNIUYO",
+    "description": "University of Uyo Post-UTME screening exam.",
+    "sortOrder": 47,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unical",
+    "name": "Post-UTME — UNICAL",
+    "description": "University of Calabar Post-UTME screening exam.",
+    "sortOrder": 48,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "post-utme-unilorin",
+    "name": "Post-UTME — UNILORIN",
+    "description": "University of Ilorin Post-UTME screening exam.",
+    "sortOrder": 49,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
     "slug": "ican",
     "name": "ICAN",
     "description": "Institute of Chartered Accountants of Nigeria professional examinations.",
-    "sortOrder": 7
+    "sortOrder": 60,
+    "isActive": false,
+    "coverageStatus": "planned"
   },
   {
-    "slug": "jupeb",
-    "name": "JUPEB",
-    "description": "Joint Universities Preliminary Examinations Board.",
-    "sortOrder": 8
+    "slug": "anan",
+    "name": "ANAN",
+    "description": "Association of National Accountants of Nigeria professional examinations.",
+    "sortOrder": 61,
+    "isActive": false,
+    "coverageStatus": "planned"
   },
   {
     "slug": "ielts",
     "name": "IELTS",
-    "description": "International English Language Testing System.",
-    "sortOrder": 9
+    "description": "International English Language Testing System — for study abroad and migration.",
+    "sortOrder": 70,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "toefl",
+    "name": "TOEFL iBT",
+    "description": "Test of English as a Foreign Language — required by US universities.",
+    "sortOrder": 71,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
   },
   {
     "slug": "sat",
     "name": "SAT",
     "description": "Scholastic Assessment Test for US college admissions.",
-    "sortOrder": 10
+    "sortOrder": 72,
+    "isActive": false,
+    "coverageStatus": "coming_soon"
+  },
+  {
+    "slug": "gre",
+    "name": "GRE",
+    "description": "Graduate Record Examinations — required by many US graduate programmes.",
+    "sortOrder": 73,
+    "isActive": false,
+    "coverageStatus": "planned"
+  },
+  {
+    "slug": "duolingo-english",
+    "name": "Duolingo English Test",
+    "description": "Online English-proficiency test accepted by 5000+ universities worldwide.",
+    "sortOrder": 74,
+    "isActive": false,
+    "coverageStatus": "planned"
   }
 ]
