@@ -1,23 +1,951 @@
 {
+  "_comment": "Topic seed data per (exam-slug)/(subject-slug). frequencyScore is a 0-100 hint for the AI generator and the heatmap weighting — initial values are best-guess from past-paper distribution; will be tuned from real attempt data post-launch. Topic descriptions are short (1-2 sentences) so a generator/reviewer can confirm the slug means what they think it means. Sprint 6 expanded JAMB to all 9 active subjects and seeded WAEC + NECO core subjects (English / Math / Biology / Chemistry / Physics) with 8-12 topics each. The remaining WAEC + NECO subjects (Lit / Govt / Econ / Geo / History / CRK / Agric) currently have empty topic lists — admin should populate via /admin/topics or the bulk-generate pipeline once the first round of Math/English questions are reviewed.",
+
   "jamb-utme/mathematics": [
-    { "slug": "number-and-numeration", "name": "Number and Numeration", "frequencyScore": 90 },
-    { "slug": "algebra", "name": "Algebraic Processes", "frequencyScore": 95 },
-    { "slug": "geometry-trigonometry", "name": "Geometry and Trigonometry", "frequencyScore": 85 },
-    { "slug": "calculus", "name": "Introductory Calculus", "frequencyScore": 70 },
-    { "slug": "statistics", "name": "Statistics", "frequencyScore": 75 },
-    { "slug": "sets-and-logic", "name": "Sets and Logic", "frequencyScore": 60 },
-    { "slug": "indices-logarithms", "name": "Indices and Logarithms", "frequencyScore": 80 },
-    { "slug": "sequences-series", "name": "Sequences and Series", "frequencyScore": 65 },
-    { "slug": "permutation-combination", "name": "Permutation and Combination", "frequencyScore": 55 },
-    { "slug": "probability", "name": "Probability", "frequencyScore": 70 }
+    {
+      "slug": "number-and-numeration",
+      "name": "Number and Numeration",
+      "frequencyScore": 90,
+      "description": "Number bases, fractions, indices, logarithms, surds, sets, ratios and percentages."
+    },
+    {
+      "slug": "algebra",
+      "name": "Algebraic Processes",
+      "frequencyScore": 95,
+      "description": "Polynomials, factorisation, quadratic equations, simultaneous equations, inequalities, variation."
+    },
+    {
+      "slug": "geometry-trigonometry",
+      "name": "Geometry and Trigonometry",
+      "frequencyScore": 85,
+      "description": "Plane geometry, mensuration, coordinate geometry, sine/cosine/tangent ratios, trigonometric identities."
+    },
+    {
+      "slug": "calculus",
+      "name": "Introductory Calculus",
+      "frequencyScore": 70,
+      "description": "Differentiation rules, applications to maxima/minima, basic integration of polynomials."
+    },
+    {
+      "slug": "statistics",
+      "name": "Statistics",
+      "frequencyScore": 75,
+      "description": "Measures of central tendency, dispersion, frequency distributions, histograms."
+    },
+    {
+      "slug": "sets-and-logic",
+      "name": "Sets and Logic",
+      "frequencyScore": 60,
+      "description": "Set notation, Venn diagrams, set operations, logical statements."
+    },
+    {
+      "slug": "indices-logarithms",
+      "name": "Indices and Logarithms",
+      "frequencyScore": 80,
+      "description": "Laws of indices, logarithm bases, change of base, simple logarithmic equations."
+    },
+    {
+      "slug": "sequences-series",
+      "name": "Sequences and Series",
+      "frequencyScore": 65,
+      "description": "Arithmetic and geometric progressions, nth term, sum to n terms."
+    },
+    {
+      "slug": "permutation-combination",
+      "name": "Permutation and Combination",
+      "frequencyScore": 55,
+      "description": "Counting principle, factorial notation, nPr and nCr, simple selection problems."
+    },
+    {
+      "slug": "probability",
+      "name": "Probability",
+      "frequencyScore": 70,
+      "description": "Sample space, mutually exclusive and independent events, simple probability calculations."
+    }
   ],
+
   "jamb-utme/english-language": [
-    { "slug": "comprehension", "name": "Comprehension", "frequencyScore": 95 },
-    { "slug": "lexis-and-structure", "name": "Lexis and Structure", "frequencyScore": 90 },
-    { "slug": "synonyms-antonyms", "name": "Synonyms and Antonyms", "frequencyScore": 85 },
-    { "slug": "oral-forms", "name": "Oral Forms", "frequencyScore": 75 },
-    { "slug": "sentence-completion", "name": "Sentence Completion", "frequencyScore": 80 },
-    { "slug": "idioms-and-figures", "name": "Idioms and Figures of Speech", "frequencyScore": 70 },
-    { "slug": "summary", "name": "Summary", "frequencyScore": 65 }
+    {
+      "slug": "comprehension",
+      "name": "Comprehension",
+      "frequencyScore": 95,
+      "description": "Reading comprehension passages with main idea, inference, and vocabulary-in-context questions."
+    },
+    {
+      "slug": "lexis-and-structure",
+      "name": "Lexis and Structure",
+      "frequencyScore": 90,
+      "description": "Word usage, collocations, sentence structure, parts of speech."
+    },
+    {
+      "slug": "synonyms-antonyms",
+      "name": "Synonyms and Antonyms",
+      "frequencyScore": 85,
+      "description": "Vocabulary tests requiring matching words to similar or opposite meaning."
+    },
+    {
+      "slug": "oral-forms",
+      "name": "Oral Forms",
+      "frequencyScore": 75,
+      "description": "Stress patterns, vowel sounds, consonant sounds, intonation patterns."
+    },
+    {
+      "slug": "sentence-completion",
+      "name": "Sentence Completion",
+      "frequencyScore": 80,
+      "description": "Filling blanks with grammatically and contextually correct word choices."
+    },
+    {
+      "slug": "idioms-and-figures",
+      "name": "Idioms and Figures of Speech",
+      "frequencyScore": 70,
+      "description": "Recognising idiomatic expressions, similes, metaphors, personification, hyperbole."
+    },
+    {
+      "slug": "summary",
+      "name": "Summary",
+      "frequencyScore": 65,
+      "description": "Identifying key points and reducing passage content to specified length."
+    }
+  ],
+
+  "jamb-utme/physics": [
+    {
+      "slug": "mechanics",
+      "name": "Mechanics",
+      "frequencyScore": 90,
+      "description": "Kinematics, Newton's laws, momentum, energy, work, power, projectiles."
+    },
+    {
+      "slug": "heat-and-thermodynamics",
+      "name": "Heat and Thermodynamics",
+      "frequencyScore": 75,
+      "description": "Temperature, specific heat capacity, thermal expansion, gas laws."
+    },
+    {
+      "slug": "waves-and-sound",
+      "name": "Waves and Sound",
+      "frequencyScore": 80,
+      "description": "Wave motion, reflection, refraction, interference, sound waves, resonance."
+    },
+    {
+      "slug": "optics",
+      "name": "Geometrical Optics",
+      "frequencyScore": 70,
+      "description": "Reflection at plane and curved mirrors, refraction, lenses, optical instruments."
+    },
+    {
+      "slug": "electricity-magnetism",
+      "name": "Electricity and Magnetism",
+      "frequencyScore": 90,
+      "description": "Current electricity, Ohm's law, circuits, electromagnetism, electromagnetic induction."
+    },
+    {
+      "slug": "modern-physics",
+      "name": "Modern Physics",
+      "frequencyScore": 60,
+      "description": "Atomic structure, photoelectric effect, radioactivity, nuclear reactions."
+    },
+    {
+      "slug": "fluids",
+      "name": "Fluids at Rest and in Motion",
+      "frequencyScore": 55,
+      "description": "Pressure, density, Archimedes' principle, surface tension, viscosity."
+    }
+  ],
+
+  "jamb-utme/chemistry": [
+    {
+      "slug": "atomic-structure",
+      "name": "Atomic Structure and Bonding",
+      "frequencyScore": 90,
+      "description": "Atoms, isotopes, electronic configuration, ionic and covalent bonding."
+    },
+    {
+      "slug": "stoichiometry",
+      "name": "Stoichiometry and Mole Concept",
+      "frequencyScore": 85,
+      "description": "Mole calculations, limiting reagents, percentage yield, empirical formulae."
+    },
+    {
+      "slug": "acids-bases-salts",
+      "name": "Acids, Bases and Salts",
+      "frequencyScore": 85,
+      "description": "pH scale, neutralisation, salt preparation, indicators."
+    },
+    {
+      "slug": "redox-and-electrochemistry",
+      "name": "Redox and Electrochemistry",
+      "frequencyScore": 75,
+      "description": "Oxidation numbers, redox reactions, electrolysis, electrochemical cells."
+    },
+    {
+      "slug": "energy-changes",
+      "name": "Energy Changes",
+      "frequencyScore": 65,
+      "description": "Exothermic/endothermic reactions, heat of reaction, Hess's law."
+    },
+    {
+      "slug": "chemical-kinetics",
+      "name": "Chemical Kinetics and Equilibrium",
+      "frequencyScore": 70,
+      "description": "Rate of reaction, factors affecting rate, dynamic equilibrium, Le Chatelier's principle."
+    },
+    {
+      "slug": "organic-chemistry",
+      "name": "Organic Chemistry",
+      "frequencyScore": 90,
+      "description": "Hydrocarbons, alcohols, carboxylic acids, esters, polymers, biomolecules."
+    },
+    {
+      "slug": "inorganic-chemistry",
+      "name": "Inorganic Chemistry",
+      "frequencyScore": 80,
+      "description": "Periodic table trends, transition metals, qualitative analysis, industrial processes."
+    }
+  ],
+
+  "jamb-utme/biology": [
+    {
+      "slug": "cell-biology",
+      "name": "Cell Biology",
+      "frequencyScore": 85,
+      "description": "Cell structure, organelles, cell division, basic biochemistry."
+    },
+    {
+      "slug": "plant-biology",
+      "name": "Plant Biology",
+      "frequencyScore": 80,
+      "description": "Plant tissues, photosynthesis, transpiration, plant nutrition, reproduction."
+    },
+    {
+      "slug": "animal-biology",
+      "name": "Animal Biology",
+      "frequencyScore": 85,
+      "description": "Animal classification, mammalian systems, hormones, nervous system."
+    },
+    {
+      "slug": "ecology",
+      "name": "Ecology",
+      "frequencyScore": 80,
+      "description": "Ecosystems, food chains, biogeochemical cycles, population dynamics."
+    },
+    {
+      "slug": "genetics",
+      "name": "Genetics",
+      "frequencyScore": 75,
+      "description": "Mendelian inheritance, sex linkage, mutations, evolution basics."
+    },
+    {
+      "slug": "human-physiology",
+      "name": "Human Physiology",
+      "frequencyScore": 90,
+      "description": "Digestion, respiration, circulation, excretion, reproduction in humans."
+    },
+    {
+      "slug": "microorganisms",
+      "name": "Microorganisms and Health",
+      "frequencyScore": 70,
+      "description": "Bacteria, viruses, fungi, diseases, immunity, public health."
+    }
+  ],
+
+  "jamb-utme/literature-in-english": [
+    {
+      "slug": "literary-devices",
+      "name": "Literary Devices and Forms",
+      "frequencyScore": 85,
+      "description": "Figures of speech, sound devices, narrative techniques, genre conventions."
+    },
+    {
+      "slug": "poetry-analysis",
+      "name": "Poetry Analysis",
+      "frequencyScore": 80,
+      "description": "Poetic forms, themes, structure, imagery, set poems on the syllabus."
+    },
+    {
+      "slug": "drama-analysis",
+      "name": "Drama Analysis",
+      "frequencyScore": 80,
+      "description": "Dramatic structure, character, theme analysis of set plays."
+    },
+    {
+      "slug": "prose-analysis",
+      "name": "Prose Analysis",
+      "frequencyScore": 80,
+      "description": "Narrative voice, plot, characterisation in set novels."
+    },
+    {
+      "slug": "literary-terms",
+      "name": "Literary Terms and Theory",
+      "frequencyScore": 70,
+      "description": "Definitions of literary terms; basic genre theory."
+    }
+  ],
+
+  "jamb-utme/government": [
+    {
+      "slug": "political-concepts",
+      "name": "Basic Political Concepts",
+      "frequencyScore": 85,
+      "description": "State, sovereignty, power, authority, legitimacy, democracy."
+    },
+    {
+      "slug": "nigerian-government",
+      "name": "Government of Nigeria",
+      "frequencyScore": 90,
+      "description": "Nigerian constitutions, federal structure, executive/legislative/judicial arms."
+    },
+    {
+      "slug": "political-parties",
+      "name": "Political Parties and Pressure Groups",
+      "frequencyScore": 75,
+      "description": "Party systems, electoral systems, interest groups, civil society."
+    },
+    {
+      "slug": "international-relations",
+      "name": "International Relations and Organisations",
+      "frequencyScore": 70,
+      "description": "ECOWAS, AU, UN, OPEC, Commonwealth, foreign policy basics."
+    },
+    {
+      "slug": "public-administration",
+      "name": "Public Administration",
+      "frequencyScore": 65,
+      "description": "Civil service, local government, public corporations."
+    }
+  ],
+
+  "jamb-utme/economics": [
+    {
+      "slug": "basic-concepts",
+      "name": "Basic Economic Concepts",
+      "frequencyScore": 90,
+      "description": "Scarcity, opportunity cost, demand, supply, equilibrium."
+    },
+    {
+      "slug": "production-and-firms",
+      "name": "Production and Firms",
+      "frequencyScore": 85,
+      "description": "Factors of production, types of business organisations, costs of production."
+    },
+    {
+      "slug": "market-structure",
+      "name": "Market Structure",
+      "frequencyScore": 80,
+      "description": "Perfect competition, monopoly, oligopoly, monopolistic competition."
+    },
+    {
+      "slug": "money-and-banking",
+      "name": "Money and Banking",
+      "frequencyScore": 80,
+      "description": "Functions of money, types of banks, central bank, monetary policy."
+    },
+    {
+      "slug": "public-finance",
+      "name": "Public Finance",
+      "frequencyScore": 75,
+      "description": "Government revenue, taxation, public expenditure, budget."
+    },
+    {
+      "slug": "international-trade",
+      "name": "International Trade",
+      "frequencyScore": 70,
+      "description": "Balance of payments, exchange rates, trade theories, protectionism."
+    },
+    {
+      "slug": "national-income",
+      "name": "National Income",
+      "frequencyScore": 75,
+      "description": "GDP, GNP, methods of measurement, inflation and unemployment."
+    },
+    {
+      "slug": "economic-development",
+      "name": "Economic Development of Nigeria",
+      "frequencyScore": 70,
+      "description": "Development plans, agricultural policy, industrialisation, oil and the economy."
+    }
+  ],
+
+  "jamb-utme/geography": [
+    {
+      "slug": "physical-geography",
+      "name": "Physical Geography",
+      "frequencyScore": 85,
+      "description": "Earth structure, weather and climate, vegetation, soils."
+    },
+    {
+      "slug": "human-geography",
+      "name": "Human Geography",
+      "frequencyScore": 80,
+      "description": "Population, settlement, migration, agriculture, industry."
+    },
+    {
+      "slug": "regional-geography-nigeria",
+      "name": "Regional Geography of Nigeria",
+      "frequencyScore": 90,
+      "description": "Nigerian relief, climate, vegetation, agriculture, industry, transport."
+    },
+    {
+      "slug": "regional-geography-africa",
+      "name": "Regional Geography of Africa",
+      "frequencyScore": 70,
+      "description": "African physical and economic geography, ECOWAS region."
+    },
+    {
+      "slug": "map-reading",
+      "name": "Map Reading and Interpretation",
+      "frequencyScore": 75,
+      "description": "Scale, contour, latitude/longitude, conventional signs."
+    }
+  ],
+
+  "jamb-utme/history": [
+    {
+      "slug": "pre-colonial-nigeria",
+      "name": "Pre-Colonial Nigeria",
+      "frequencyScore": 80,
+      "description": "Major pre-colonial states (Hausa, Yoruba, Igbo, Borno, Benin)."
+    },
+    {
+      "slug": "colonial-nigeria",
+      "name": "Colonial Nigeria",
+      "frequencyScore": 85,
+      "description": "British colonial administration, indirect rule, nationalism."
+    },
+    {
+      "slug": "independence-and-first-republic",
+      "name": "Independence and First Republic",
+      "frequencyScore": 80,
+      "description": "Independence movement, constitutional development, first republic politics."
+    },
+    {
+      "slug": "civil-war-and-after",
+      "name": "Civil War and Military Rule",
+      "frequencyScore": 75,
+      "description": "Causes and consequences of the civil war, military regimes, return to democracy."
+    },
+    {
+      "slug": "nigeria-foreign-relations",
+      "name": "Nigeria and the World",
+      "frequencyScore": 65,
+      "description": "Nigeria in ECOWAS, AU, UN; foreign policy under different administrations."
+    }
+  ],
+
+  "waec-ssce/mathematics": [
+    {
+      "slug": "number-and-numeration",
+      "name": "Number and Numeration",
+      "frequencyScore": 90,
+      "description": "Number bases, modular arithmetic, fractions, decimals, percentages, ratios."
+    },
+    {
+      "slug": "algebraic-processes",
+      "name": "Algebraic Processes",
+      "frequencyScore": 95,
+      "description": "Algebraic expressions, factorisation, equations and inequalities, variation."
+    },
+    {
+      "slug": "mensuration",
+      "name": "Mensuration",
+      "frequencyScore": 85,
+      "description": "Lengths, areas, volumes of plane and solid figures."
+    },
+    {
+      "slug": "plane-geometry",
+      "name": "Plane Geometry",
+      "frequencyScore": 80,
+      "description": "Angles, polygons, circles, locus, geometric constructions."
+    },
+    {
+      "slug": "trigonometry",
+      "name": "Trigonometry",
+      "frequencyScore": 75,
+      "description": "Trig ratios, bearings, sine and cosine rules, applications."
+    },
+    {
+      "slug": "introductory-calculus",
+      "name": "Introductory Calculus",
+      "frequencyScore": 60,
+      "description": "Differentiation of polynomials, gradient and tangent, simple integration."
+    },
+    {
+      "slug": "statistics",
+      "name": "Statistics",
+      "frequencyScore": 80,
+      "description": "Tabulation, measures of central tendency and dispersion, frequency tables, ogives."
+    },
+    {
+      "slug": "probability",
+      "name": "Probability",
+      "frequencyScore": 70,
+      "description": "Sample space, events, mutually exclusive and independent events."
+    },
+    {
+      "slug": "matrices-and-determinants",
+      "name": "Matrices and Determinants",
+      "frequencyScore": 50,
+      "description": "Matrix addition, multiplication, 2×2 determinants and inverse."
+    }
+  ],
+
+  "waec-ssce/english-language": [
+    {
+      "slug": "comprehension",
+      "name": "Comprehension and Summary",
+      "frequencyScore": 95,
+      "description": "Passage analysis, main idea identification, summarising in your own words."
+    },
+    {
+      "slug": "essay-writing",
+      "name": "Essay Writing",
+      "frequencyScore": 95,
+      "description": "Argumentative, narrative, descriptive, expository essays. Letter writing (formal/informal/article)."
+    },
+    {
+      "slug": "lexis-and-structure",
+      "name": "Lexis and Structure",
+      "frequencyScore": 90,
+      "description": "Word meaning in context, grammatical structure, sentence transformation."
+    },
+    {
+      "slug": "oral-english",
+      "name": "Oral English (Test of Orals)",
+      "frequencyScore": 75,
+      "description": "Vowel and consonant sounds, stress, intonation, rhymes."
+    },
+    {
+      "slug": "register",
+      "name": "Register and Genre",
+      "frequencyScore": 60,
+      "description": "Specialised vocabulary across different fields (medicine, law, sports, journalism)."
+    }
+  ],
+
+  "waec-ssce/biology": [
+    {
+      "slug": "living-organisms",
+      "name": "Living Organisms and Their Environment",
+      "frequencyScore": 85,
+      "description": "Characteristics of living things, classification, ecological levels of organisation."
+    },
+    {
+      "slug": "cell-and-its-environment",
+      "name": "The Cell and Its Environment",
+      "frequencyScore": 80,
+      "description": "Cell structure, transport across cell membranes, tissues, cell division."
+    },
+    {
+      "slug": "transport-systems",
+      "name": "Transport Systems",
+      "frequencyScore": 80,
+      "description": "Transport in plants and animals; circulatory and lymphatic systems."
+    },
+    {
+      "slug": "respiration",
+      "name": "Respiration",
+      "frequencyScore": 80,
+      "description": "Gaseous exchange, mechanism of breathing, cellular respiration."
+    },
+    {
+      "slug": "excretion",
+      "name": "Excretion",
+      "frequencyScore": 75,
+      "description": "Excretory organs in plants and animals; kidney structure and function."
+    },
+    {
+      "slug": "support-and-movement",
+      "name": "Support and Movement",
+      "frequencyScore": 70,
+      "description": "Skeleton, joints, muscle types, movement in animals and plants."
+    },
+    {
+      "slug": "reproduction",
+      "name": "Reproduction",
+      "frequencyScore": 80,
+      "description": "Asexual and sexual reproduction in plants, animals, and humans."
+    },
+    {
+      "slug": "growth-development",
+      "name": "Growth and Development",
+      "frequencyScore": 65,
+      "description": "Growth in plants and animals; metamorphosis; embryology basics."
+    },
+    {
+      "slug": "ecology",
+      "name": "Ecology",
+      "frequencyScore": 80,
+      "description": "Ecosystems, food chains and webs, energy flow, ecological factors."
+    },
+    {
+      "slug": "heredity-and-variation",
+      "name": "Heredity and Variation",
+      "frequencyScore": 75,
+      "description": "Mendelian genetics, variations, mutation, evolution."
+    },
+    {
+      "slug": "applied-biology",
+      "name": "Applied Biology",
+      "frequencyScore": 65,
+      "description": "Pests and diseases of crops, conservation, biotechnology basics."
+    }
+  ],
+
+  "waec-ssce/chemistry": [
+    {
+      "slug": "introduction-and-matter",
+      "name": "Introduction to Chemistry and States of Matter",
+      "frequencyScore": 80,
+      "description": "Branches of chemistry, particulate nature of matter, gas laws."
+    },
+    {
+      "slug": "atomic-structure-bonding",
+      "name": "Atomic Structure and Chemical Bonding",
+      "frequencyScore": 90,
+      "description": "Atomic models, electronic configuration, ionic, covalent, and metallic bonding."
+    },
+    {
+      "slug": "stoichiometry",
+      "name": "Stoichiometry",
+      "frequencyScore": 85,
+      "description": "Mole concept, molar mass, balanced equations, calculations from equations."
+    },
+    {
+      "slug": "acids-bases-salts",
+      "name": "Acids, Bases and Salts",
+      "frequencyScore": 85,
+      "description": "Definitions, pH, indicators, neutralisation, salt preparation."
+    },
+    {
+      "slug": "redox-electrochem",
+      "name": "Oxidation–Reduction and Electrolysis",
+      "frequencyScore": 80,
+      "description": "Oxidation states, electrochemical series, electrolysis of common solutions."
+    },
+    {
+      "slug": "chemical-kinetics",
+      "name": "Chemical Kinetics and Equilibrium",
+      "frequencyScore": 70,
+      "description": "Rate of reaction, factors, equilibrium, Le Chatelier's principle."
+    },
+    {
+      "slug": "metals-and-extraction",
+      "name": "Metals and Their Extraction",
+      "frequencyScore": 75,
+      "description": "Extraction of iron, aluminium, copper; alloys; corrosion."
+    },
+    {
+      "slug": "non-metals",
+      "name": "Non-Metals and Their Compounds",
+      "frequencyScore": 75,
+      "description": "Hydrogen, carbon, nitrogen, oxygen, sulfur, halogens; their compounds."
+    },
+    {
+      "slug": "organic-chemistry",
+      "name": "Organic Chemistry",
+      "frequencyScore": 90,
+      "description": "Hydrocarbons, alcohols, carboxylic acids, esters, polymers, biological molecules."
+    },
+    {
+      "slug": "industrial-chemistry",
+      "name": "Industrial Chemistry",
+      "frequencyScore": 65,
+      "description": "Petroleum, fertilisers, soaps and detergents, glass, ceramics."
+    }
+  ],
+
+  "waec-ssce/physics": [
+    {
+      "slug": "measurement",
+      "name": "Measurement and Units",
+      "frequencyScore": 75,
+      "description": "SI units, measurement of length, mass, time; errors and significant figures."
+    },
+    {
+      "slug": "mechanics",
+      "name": "Mechanics",
+      "frequencyScore": 95,
+      "description": "Motion, forces, Newton's laws, work, energy, power, momentum."
+    },
+    {
+      "slug": "fluids",
+      "name": "Fluids at Rest and in Motion",
+      "frequencyScore": 70,
+      "description": "Pressure in fluids, Archimedes' principle, surface tension, viscosity."
+    },
+    {
+      "slug": "heat-thermodynamics",
+      "name": "Heat Energy and Thermodynamics",
+      "frequencyScore": 80,
+      "description": "Heat capacity, latent heat, gas laws, thermal expansion."
+    },
+    {
+      "slug": "waves",
+      "name": "Waves",
+      "frequencyScore": 80,
+      "description": "Wave properties, sound waves, light waves, electromagnetic spectrum."
+    },
+    {
+      "slug": "optics",
+      "name": "Geometrical Optics",
+      "frequencyScore": 75,
+      "description": "Reflection, refraction, lenses, mirrors, optical instruments."
+    },
+    {
+      "slug": "electricity",
+      "name": "Electricity",
+      "frequencyScore": 90,
+      "description": "Static and current electricity, Ohm's law, circuits, household wiring."
+    },
+    {
+      "slug": "magnetism-em-induction",
+      "name": "Magnetism and Electromagnetic Induction",
+      "frequencyScore": 80,
+      "description": "Magnetic fields, electromagnetic effects, induced EMF, transformers."
+    },
+    {
+      "slug": "modern-physics",
+      "name": "Modern Physics",
+      "frequencyScore": 65,
+      "description": "Photoelectric effect, atomic structure, radioactivity, nuclear reactions."
+    }
+  ],
+
+  "neco-ssce/mathematics": [
+    {
+      "slug": "number-and-numeration",
+      "name": "Number and Numeration",
+      "frequencyScore": 85,
+      "description": "Number bases, fractions, decimals, percentages, surds, indices, logarithms."
+    },
+    {
+      "slug": "algebraic-processes",
+      "name": "Algebraic Processes",
+      "frequencyScore": 90,
+      "description": "Algebraic expressions, factorisation, equations, inequalities, variation."
+    },
+    {
+      "slug": "mensuration",
+      "name": "Mensuration",
+      "frequencyScore": 85,
+      "description": "Length, area, volume of common shapes and composite figures."
+    },
+    {
+      "slug": "plane-geometry",
+      "name": "Plane Geometry",
+      "frequencyScore": 80,
+      "description": "Angles, polygons, circles, locus, constructions."
+    },
+    {
+      "slug": "trigonometry",
+      "name": "Trigonometry",
+      "frequencyScore": 75,
+      "description": "Trig ratios, bearings, sine and cosine rules."
+    },
+    {
+      "slug": "introductory-calculus",
+      "name": "Introductory Calculus",
+      "frequencyScore": 60,
+      "description": "Differentiation and integration of polynomials."
+    },
+    {
+      "slug": "statistics",
+      "name": "Statistics",
+      "frequencyScore": 80,
+      "description": "Frequency tables, mean, median, mode, range, variance, standard deviation."
+    },
+    {
+      "slug": "probability",
+      "name": "Probability",
+      "frequencyScore": 70,
+      "description": "Sample space, events, addition and multiplication rules."
+    }
+  ],
+
+  "neco-ssce/english-language": [
+    {
+      "slug": "comprehension",
+      "name": "Comprehension and Summary",
+      "frequencyScore": 95,
+      "description": "Passage analysis, summary writing."
+    },
+    {
+      "slug": "essay-writing",
+      "name": "Essay Writing",
+      "frequencyScore": 95,
+      "description": "Argumentative, narrative, descriptive, expository essays; letters and articles."
+    },
+    {
+      "slug": "lexis-and-structure",
+      "name": "Lexis and Structure",
+      "frequencyScore": 90,
+      "description": "Word usage, grammatical structures, sentence transformation."
+    },
+    {
+      "slug": "oral-english",
+      "name": "Oral English",
+      "frequencyScore": 75,
+      "description": "Phonemes, stress, intonation, rhymes."
+    },
+    {
+      "slug": "register",
+      "name": "Register and Genre",
+      "frequencyScore": 60,
+      "description": "Specialised vocabulary across different fields."
+    }
+  ],
+
+  "neco-ssce/biology": [
+    {
+      "slug": "living-organisms",
+      "name": "Living Organisms and Their Environment",
+      "frequencyScore": 85,
+      "description": "Characteristics of life, classification, ecological levels."
+    },
+    {
+      "slug": "cell-and-its-environment",
+      "name": "The Cell and Its Environment",
+      "frequencyScore": 80,
+      "description": "Cell structure, membrane transport, tissues, division."
+    },
+    {
+      "slug": "nutrition",
+      "name": "Nutrition",
+      "frequencyScore": 85,
+      "description": "Photosynthesis, plant nutrition, human nutrition, balanced diet."
+    },
+    {
+      "slug": "transport-systems",
+      "name": "Transport Systems",
+      "frequencyScore": 80,
+      "description": "Plant transport, blood and circulation in animals and humans."
+    },
+    {
+      "slug": "respiration-excretion",
+      "name": "Respiration and Excretion",
+      "frequencyScore": 80,
+      "description": "Breathing mechanisms, cellular respiration, excretory organs."
+    },
+    {
+      "slug": "support-and-movement",
+      "name": "Support and Movement",
+      "frequencyScore": 70,
+      "description": "Skeletons, joints, muscles, movement in different organisms."
+    },
+    {
+      "slug": "reproduction",
+      "name": "Reproduction",
+      "frequencyScore": 80,
+      "description": "Reproductive systems and processes in plants, animals, humans."
+    },
+    {
+      "slug": "ecology",
+      "name": "Ecology",
+      "frequencyScore": 80,
+      "description": "Ecosystems, food chains and webs, ecological factors, conservation."
+    },
+    {
+      "slug": "heredity-evolution",
+      "name": "Heredity and Evolution",
+      "frequencyScore": 75,
+      "description": "Mendelian inheritance, variation, mutation, theories of evolution."
+    },
+    {
+      "slug": "applied-biology",
+      "name": "Applied Biology",
+      "frequencyScore": 65,
+      "description": "Pests, diseases, biotechnology, public health."
+    }
+  ],
+
+  "neco-ssce/chemistry": [
+    {
+      "slug": "atomic-structure-bonding",
+      "name": "Atomic Structure and Bonding",
+      "frequencyScore": 90,
+      "description": "Atomic models, electronic configuration, ionic, covalent, metallic bonding."
+    },
+    {
+      "slug": "stoichiometry",
+      "name": "Stoichiometry",
+      "frequencyScore": 85,
+      "description": "Mole concept, balanced equations, mass and volume calculations."
+    },
+    {
+      "slug": "acids-bases-salts",
+      "name": "Acids, Bases and Salts",
+      "frequencyScore": 85,
+      "description": "pH, indicators, neutralisation, salt preparation."
+    },
+    {
+      "slug": "redox-electrolysis",
+      "name": "Redox and Electrolysis",
+      "frequencyScore": 80,
+      "description": "Oxidation states, redox reactions, electrolysis processes."
+    },
+    {
+      "slug": "chemical-equilibrium",
+      "name": "Chemical Kinetics and Equilibrium",
+      "frequencyScore": 70,
+      "description": "Rate of reaction, factors affecting rate, dynamic equilibrium."
+    },
+    {
+      "slug": "metals-non-metals",
+      "name": "Metals and Non-Metals",
+      "frequencyScore": 75,
+      "description": "Properties, extraction methods, common compounds and uses."
+    },
+    {
+      "slug": "organic-chemistry",
+      "name": "Organic Chemistry",
+      "frequencyScore": 90,
+      "description": "Hydrocarbons, alcohols, acids, esters, polymers."
+    },
+    {
+      "slug": "industrial-chemistry",
+      "name": "Industrial Chemistry",
+      "frequencyScore": 65,
+      "description": "Petroleum, fertilisers, soaps, glass, ceramics."
+    }
+  ],
+
+  "neco-ssce/physics": [
+    {
+      "slug": "mechanics",
+      "name": "Mechanics",
+      "frequencyScore": 95,
+      "description": "Kinematics, dynamics, work-energy, momentum, projectiles."
+    },
+    {
+      "slug": "heat",
+      "name": "Heat",
+      "frequencyScore": 80,
+      "description": "Heat capacity, latent heat, expansion, gas laws."
+    },
+    {
+      "slug": "waves",
+      "name": "Waves",
+      "frequencyScore": 80,
+      "description": "Wave properties, sound, light, electromagnetic spectrum."
+    },
+    {
+      "slug": "electricity",
+      "name": "Electricity",
+      "frequencyScore": 90,
+      "description": "Static and current electricity, Ohm's law, circuits."
+    },
+    {
+      "slug": "magnetism",
+      "name": "Magnetism and Electromagnetism",
+      "frequencyScore": 80,
+      "description": "Magnetic fields, electromagnetic induction, transformers."
+    },
+    {
+      "slug": "modern-physics",
+      "name": "Modern Physics",
+      "frequencyScore": 65,
+      "description": "Atomic structure, photoelectric effect, radioactivity."
+    }
   ]
 }

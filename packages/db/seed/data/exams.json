@@ -12,16 +12,16 @@
     "name": "WAEC SSCE",
     "description": "West African Senior School Certificate Examination administered by WAEC.",
     "sortOrder": 2,
-    "isActive": false,
-    "coverageStatus": "coming_soon"
+    "isActive": true,
+    "coverageStatus": "beta"
   },
   {
     "slug": "neco-ssce",
     "name": "NECO SSCE",
     "description": "National Examinations Council Senior School Certificate Examination.",
     "sortOrder": 3,
-    "isActive": false,
-    "coverageStatus": "coming_soon"
+    "isActive": true,
+    "coverageStatus": "beta"
   },
   {
     "slug": "waec-gce",
@@ -277,7 +277,7 @@
     "description": "International English Language Testing System — for study abroad and migration.",
     "sortOrder": 70,
     "isActive": false,
-    "coverageStatus": "coming_soon"
+    "coverageStatus": "hidden"
   },
   {
     "slug": "toefl",
@@ -285,7 +285,7 @@
     "description": "Test of English as a Foreign Language — required by US universities.",
     "sortOrder": 71,
     "isActive": false,
-    "coverageStatus": "coming_soon"
+    "coverageStatus": "hidden"
   },
   {
     "slug": "sat",
@@ -293,7 +293,7 @@
     "description": "Scholastic Assessment Test for US college admissions.",
     "sortOrder": 72,
     "isActive": false,
-    "coverageStatus": "coming_soon"
+    "coverageStatus": "hidden"
   },
   {
     "slug": "gre",
@@ -301,7 +301,7 @@
     "description": "Graduate Record Examinations — required by many US graduate programmes.",
     "sortOrder": 73,
     "isActive": false,
-    "coverageStatus": "planned"
+    "coverageStatus": "hidden"
   },
   {
     "slug": "duolingo-english",
@@ -309,6 +309,6 @@
     "description": "Online English-proficiency test accepted by 5000+ universities worldwide.",
     "sortOrder": 74,
     "isActive": false,
-    "coverageStatus": "planned"
+    "coverageStatus": "hidden"
   }
 ]

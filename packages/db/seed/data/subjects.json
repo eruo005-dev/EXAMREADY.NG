@@ -1,4 +1,5 @@
 {
+  "_comment": "Subject seed data per exam slug. Sprint 6 expanded WAEC + NECO to the 12-subject core. The slugs match across exams (mathematics, english-language, etc.) so a question generated for the JAMB Mathematics topic 'algebra' could in principle be re-used for WAEC Mathematics — but the seeder doesn't share rows across exams (each row is exam-scoped). Cross-exam reuse is a future optimization.",
   "jamb-utme": [
     { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
     { "slug": "english-language", "name": "English Language", "sortOrder": 2 },
@@ -17,14 +18,31 @@
     { "slug": "accounting", "name": "Accounting", "sortOrder": 15 }
   ],
   "waec-ssce": [
-    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
-    { "slug": "english-language", "name": "English Language", "sortOrder": 2 },
-    { "slug": "physics", "name": "Physics", "sortOrder": 3 },
+    { "slug": "english-language", "name": "English Language", "sortOrder": 1 },
+    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 2 },
+    { "slug": "biology", "name": "Biology", "sortOrder": 3 },
     { "slug": "chemistry", "name": "Chemistry", "sortOrder": 4 },
-    { "slug": "biology", "name": "Biology", "sortOrder": 5 }
+    { "slug": "physics", "name": "Physics", "sortOrder": 5 },
+    { "slug": "literature-in-english", "name": "Literature in English", "sortOrder": 6 },
+    { "slug": "government", "name": "Government", "sortOrder": 7 },
+    { "slug": "economics", "name": "Economics", "sortOrder": 8 },
+    { "slug": "geography", "name": "Geography", "sortOrder": 9 },
+    { "slug": "history", "name": "History", "sortOrder": 10 },
+    { "slug": "crk", "name": "Christian Religious Knowledge", "sortOrder": 11 },
+    { "slug": "agricultural-science", "name": "Agricultural Science", "sortOrder": 12 }
   ],
   "neco-ssce": [
-    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
-    { "slug": "english-language", "name": "English Language", "sortOrder": 2 }
+    { "slug": "english-language", "name": "English Language", "sortOrder": 1 },
+    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 2 },
+    { "slug": "biology", "name": "Biology", "sortOrder": 3 },
+    { "slug": "chemistry", "name": "Chemistry", "sortOrder": 4 },
+    { "slug": "physics", "name": "Physics", "sortOrder": 5 },
+    { "slug": "literature-in-english", "name": "Literature in English", "sortOrder": 6 },
+    { "slug": "government", "name": "Government", "sortOrder": 7 },
+    { "slug": "economics", "name": "Economics", "sortOrder": 8 },
+    { "slug": "geography", "name": "Geography", "sortOrder": 9 },
+    { "slug": "history", "name": "History", "sortOrder": 10 },
+    { "slug": "crk", "name": "Christian Religious Knowledge", "sortOrder": 11 },
+    { "slug": "agricultural-science", "name": "Agricultural Science", "sortOrder": 12 }
   ]
 }

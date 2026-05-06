@@ -20,13 +20,7 @@ import { resolve } from 'node:path';
 import { eq } from 'drizzle-orm';
 
 import { createDb } from '../src/client';
-import {
-  exams,
-  options as optionsTable,
-  questions,
-  subjects,
-  topics,
-} from '../src/schema';
+import { exams, options as optionsTable, questions, subjects, topics } from '../src/schema';
 
 type ExamSeed = {
   slug: string;
@@ -34,7 +28,9 @@ type ExamSeed = {
   description: string;
   sortOrder: number;
   isActive?: boolean;
-  coverageStatus?: 'live' | 'coming_soon' | 'planned';
+  coverageStatus?: 'live' | 'beta' | 'coming_soon' | 'planned' | 'hidden';
+  /** Optional comment on certain rows; ignored by the loader. */
+  _comment?: string;
 };
 
 type SubjectSeed = {
@@ -47,6 +43,8 @@ type TopicSeed = {
   slug: string;
   name: string;
   frequencyScore: number;
+  /** Sprint 6: optional 1-2 sentence topic description. */
+  description?: string;
 };
 
 type OptionSeed = {
@@ -107,10 +105,12 @@ async function seed(): Promise<void> {
   log(`exams: ${examIdBySlug.size}`);
 
   // -------- Subjects --------
-  const subjectSeeds = readJson<Record<string, SubjectSeed[]>>('subjects.json');
+  const subjectSeeds = readJson<Record<string, SubjectSeed[] | string>>('subjects.json');
   const subjectIdByExamAndSlug = new Map<string, string>();
   let subjectCount = 0;
   for (const [examSlug, subjectsForExam] of Object.entries(subjectSeeds)) {
+    // Skip the `_comment` key documenting the file format.
+    if (examSlug.startsWith('_') || !Array.isArray(subjectsForExam)) continue;
     const examId = examIdBySlug.get(examSlug);
     if (!examId) throw new Error(`Unknown exam slug in subjects.json: ${examSlug}`);
 
@@ -135,12 +135,16 @@ async function seed(): Promise<void> {
   log(`subjects: ${subjectIdByExamAndSlug.size} (${subjectCount} new)`);
 
   // -------- Topics --------
-  const topicSeeds = readJson<Record<string, TopicSeed[]>>('topics.json');
+  const topicSeeds = readJson<Record<string, TopicSeed[] | string>>('topics.json');
   const topicIdBySubjectAndSlug = new Map<string, string>();
   let topicCount = 0;
   for (const [path, topicsForSubject] of Object.entries(topicSeeds)) {
+    if (path.startsWith('_') || !Array.isArray(topicsForSubject)) continue;
     const subjectId = subjectIdByExamAndSlug.get(path);
-    if (!subjectId) throw new Error(`Unknown subject path in topics.json: ${path}`);
+    if (!subjectId) {
+      log(`skip — unknown subject path in topics.json: ${path}`);
+      continue;
+    }
 
     for (const t of topicsForSubject) {
       const key = `${path}/${t.slug}`;
@@ -158,6 +162,7 @@ async function seed(): Promise<void> {
           slug: t.slug,
           name: t.name,
           frequencyScore: t.frequencyScore,
+          description: t.description,
         })
         .returning({ id: topics.id });
       if (!inserted) throw new Error(`Failed to insert topic: ${key}`);

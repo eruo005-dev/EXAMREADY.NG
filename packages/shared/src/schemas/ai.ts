@@ -24,6 +24,40 @@ export const aiGradeTheoryInputSchema = z.object({
 });
 export type AiGradeTheoryInput = z.infer<typeof aiGradeTheoryInputSchema>;
 
+/**
+ * Sprint 6 — bulk question generation across many topics for a subject.
+ * Admin-triggered. Each unit-of-work (one topic × N questions) fans out
+ * via QStash to the worker route. Difficulty distribution is per-topic
+ * counts that should sum to targetCountPerTopic.
+ */
+export const bulkGenerateInputSchema = z
+  .object({
+    subjectId: uuidSchema,
+    targetCountPerTopic: z.number().int().min(5).max(50),
+    difficultyDistribution: z.object({
+      easy: z.number().int().min(0).max(50),
+      medium: z.number().int().min(0).max(50),
+      hard: z.number().int().min(0).max(50),
+    }),
+  })
+  .refine(
+    (d) =>
+      d.difficultyDistribution.easy +
+        d.difficultyDistribution.medium +
+        d.difficultyDistribution.hard ===
+      d.targetCountPerTopic,
+    { message: 'Difficulty counts must sum to targetCountPerTopic' },
+  );
+export type BulkGenerateInput = z.infer<typeof bulkGenerateInputSchema>;
+
+export const bulkGenerateBatchPayloadSchema = z.object({
+  jobId: uuidSchema,
+  topicId: uuidSchema,
+  count: z.number().int().min(1).max(50),
+  difficultyHint: z.enum(['easier', 'harder', 'mixed']),
+});
+export type BulkGenerateBatchPayload = z.infer<typeof bulkGenerateBatchPayloadSchema>;
+
 export const tutorChatInputSchema = z.object({
   /**
    * The conversation history. We pass the FULL history each time rather

@@ -32,7 +32,10 @@ export const questions = pgTable(
     questionType: questionTypeEnum('question_type').notNull(),
     stem: text('stem').notNull(),
     passage: text('passage'),
-    media: jsonb('media').$type<MediaItem[]>().notNull().default(sql`'[]'::jsonb`),
+    media: jsonb('media')
+      .$type<MediaItem[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     difficulty: smallint('difficulty').notNull(),
     year: smallint('year'),
     source: varchar('source', { length: 100 }),
@@ -47,6 +50,31 @@ export const questions = pgTable(
      * is_active=false (pending review).
      */
     generatedByModel: varchar('generated_by_model', { length: 100 }),
+    /**
+     * Sprint 6 — admin moderation provenance. Set when an admin approves
+     * (transitions isActive=false → true) so reviewer payment + audit
+     * can attribute approvals back to a specific reviewer.
+     */
+    approvedBy: uuid('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    /**
+     * Sprint 6 theory-question fields — populated only for question_type='theory'.
+     * markingGuide is an array of expected answer points with mark allocations:
+     *   [{ point: "States Newton's 2nd law", marks: 2 },
+     *    { point: "Applies F=ma to the given numbers", marks: 3 },
+     *    ...]
+     * maxMarks is the per-question total (sum of marks across markingGuide
+     * points; we keep it as its own column so the UI doesn't have to sum
+     * a JSON array on every render).
+     * sampleExcellentAnswer is a model answer used as a comparison anchor
+     * for the AI Examiner — we feed it as part of the grading context.
+     */
+    markingGuide: jsonb('marking_guide')
+      .$type<Array<{ point: string; marks: number }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    maxMarks: smallint('max_marks'),
+    sampleExcellentAnswer: text('sample_excellent_answer'),
     /**
      * search_text is a Postgres GENERATED ALWAYS AS (...) STORED column.
      * App code never writes it. Meilisearch sync (later sprint) reads this
@@ -73,14 +101,8 @@ export const questions = pgTable(
     moderationQueueIdx: index('questions_moderation_queue_idx')
       .on(t.createdAt.desc())
       .where(sql`${t.generatedByModel} IS NOT NULL AND ${t.isActive} = false`),
-    difficultyCheck: check(
-      'questions_difficulty_check',
-      sql`${t.difficulty} BETWEEN 1 AND 5`,
-    ),
-    frequencyCheck: check(
-      'questions_frequency_check',
-      sql`${t.frequencyScore} BETWEEN 0 AND 100`,
-    ),
+    difficultyCheck: check('questions_difficulty_check', sql`${t.difficulty} BETWEEN 1 AND 5`),
+    frequencyCheck: check('questions_frequency_check', sql`${t.frequencyScore} BETWEEN 0 AND 100`),
   }),
 );
 
