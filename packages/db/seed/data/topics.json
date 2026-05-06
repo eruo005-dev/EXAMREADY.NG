@@ -1,0 +1,23 @@
+{
+  "jamb-utme/mathematics": [
+    { "slug": "number-and-numeration", "name": "Number and Numeration", "frequencyScore": 90 },
+    { "slug": "algebra", "name": "Algebraic Processes", "frequencyScore": 95 },
+    { "slug": "geometry-trigonometry", "name": "Geometry and Trigonometry", "frequencyScore": 85 },
+    { "slug": "calculus", "name": "Introductory Calculus", "frequencyScore": 70 },
+    { "slug": "statistics", "name": "Statistics", "frequencyScore": 75 },
+    { "slug": "sets-and-logic", "name": "Sets and Logic", "frequencyScore": 60 },
+    { "slug": "indices-logarithms", "name": "Indices and Logarithms", "frequencyScore": 80 },
+    { "slug": "sequences-series", "name": "Sequences and Series", "frequencyScore": 65 },
+    { "slug": "permutation-combination", "name": "Permutation and Combination", "frequencyScore": 55 },
+    { "slug": "probability", "name": "Probability", "frequencyScore": 70 }
+  ],
+  "jamb-utme/english-language": [
+    { "slug": "comprehension", "name": "Comprehension", "frequencyScore": 95 },
+    { "slug": "lexis-and-structure", "name": "Lexis and Structure", "frequencyScore": 90 },
+    { "slug": "synonyms-antonyms", "name": "Synonyms and Antonyms", "frequencyScore": 85 },
+    { "slug": "oral-forms", "name": "Oral Forms", "frequencyScore": 75 },
+    { "slug": "sentence-completion", "name": "Sentence Completion", "frequencyScore": 80 },
+    { "slug": "idioms-and-figures", "name": "Idioms and Figures of Speech", "frequencyScore": 70 },
+    { "slug": "summary", "name": "Summary", "frequencyScore": 65 }
+  ]
+}

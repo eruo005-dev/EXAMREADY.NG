@@ -1,0 +1,10 @@
+{
+  "extends": "@examready/tsconfig/library.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+    "noEmit": true,
+    "composite": false
+  },
+  "include": ["src/**/*", "seed/**/*", "drizzle.config.ts"]
+}

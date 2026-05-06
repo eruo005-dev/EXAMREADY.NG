@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "jamb-utme",
+    "name": "JAMB UTME",
+    "description": "Joint Admissions and Matriculation Board Unified Tertiary Matriculation Examination — gateway to Nigerian universities.",
+    "sortOrder": 1
+  },
+  {
+    "slug": "waec-ssce",
+    "name": "WAEC SSCE",
+    "description": "West African Senior School Certificate Examination administered by WAEC.",
+    "sortOrder": 2
+  },
+  {
+    "slug": "neco-ssce",
+    "name": "NECO SSCE",
+    "description": "National Examinations Council Senior School Certificate Examination.",
+    "sortOrder": 3
+  },
+  {
+    "slug": "post-utme",
+    "name": "Post-UTME",
+    "description": "University-specific Post-Unified Tertiary Matriculation Examination screening.",
+    "sortOrder": 4
+  },
+  {
+    "slug": "gce",
+    "name": "GCE",
+    "description": "General Certificate of Education — alternative SSCE for private candidates.",
+    "sortOrder": 5
+  },
+  {
+    "slug": "nabteb",
+    "name": "NABTEB",
+    "description": "National Business and Technical Examinations Board certificate.",
+    "sortOrder": 6
+  },
+  {
+    "slug": "ican",
+    "name": "ICAN",
+    "description": "Institute of Chartered Accountants of Nigeria professional examinations.",
+    "sortOrder": 7
+  },
+  {
+    "slug": "jupeb",
+    "name": "JUPEB",
+    "description": "Joint Universities Preliminary Examinations Board.",
+    "sortOrder": 8
+  },
+  {
+    "slug": "ielts",
+    "name": "IELTS",
+    "description": "International English Language Testing System.",
+    "sortOrder": 9
+  },
+  {
+    "slug": "sat",
+    "name": "SAT",
+    "description": "Scholastic Assessment Test for US college admissions.",
+    "sortOrder": 10
+  }
+]

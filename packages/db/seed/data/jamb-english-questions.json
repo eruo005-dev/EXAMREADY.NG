@@ -1,0 +1,357 @@
+[
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 2,
+    "stem": "Choose the word OPPOSITE in meaning to the underlined word: 'The decision was met with TREMENDOUS opposition.'",
+    "options": [
+      { "label": "A", "content": "Massive" },
+      { "label": "B", "content": "Negligible", "isCorrect": true },
+      { "label": "C", "content": "Significant" },
+      { "label": "D", "content": "Substantial" }
+    ],
+    "explanation": "'Tremendous' means very great in size or amount. Its opposite is 'negligible' meaning so small as to be unimportant."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 2,
+    "stem": "Choose the word that is most NEARLY OPPOSITE in meaning to: 'CANDID'",
+    "options": [
+      { "label": "A", "content": "Frank" },
+      { "label": "B", "content": "Honest" },
+      { "label": "C", "content": "Evasive", "isCorrect": true },
+      { "label": "D", "content": "Open" }
+    ],
+    "explanation": "'Candid' means truthful and straightforward. Its opposite is 'evasive' — avoiding direct answers."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 2,
+    "stem": "Choose the word nearest in meaning to: 'EXACERBATE'",
+    "options": [
+      { "label": "A", "content": "Soothe" },
+      { "label": "B", "content": "Worsen", "isCorrect": true },
+      { "label": "C", "content": "Solve" },
+      { "label": "D", "content": "Ignore" }
+    ],
+    "explanation": "'Exacerbate' means to make a problem worse. 'Worsen' is the closest synonym."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 3,
+    "stem": "Choose the word nearest in meaning to: 'UBIQUITOUS'",
+    "options": [
+      { "label": "A", "content": "Rare" },
+      { "label": "B", "content": "Hidden" },
+      { "label": "C", "content": "Widespread", "isCorrect": true },
+      { "label": "D", "content": "Ancient" }
+    ],
+    "explanation": "'Ubiquitous' means present, appearing, or found everywhere — i.e. widespread."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 2,
+    "stem": "She _____ to the office every morning.",
+    "options": [
+      { "label": "A", "content": "go" },
+      { "label": "B", "content": "goes", "isCorrect": true },
+      { "label": "C", "content": "going" },
+      { "label": "D", "content": "gone" }
+    ],
+    "explanation": "Third-person singular subject ('She') in the simple present tense takes the verb form ending in -s: 'goes'."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 2,
+    "stem": "By the time we arrived, the meeting _____.",
+    "options": [
+      { "label": "A", "content": "ended" },
+      { "label": "B", "content": "had ended", "isCorrect": true },
+      { "label": "C", "content": "has ended" },
+      { "label": "D", "content": "ends" }
+    ],
+    "explanation": "The past perfect tense ('had ended') is used for an action completed before another past action ('we arrived')."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "Neither the principal nor the teachers _____ available for comment.",
+    "options": [
+      { "label": "A", "content": "is" },
+      { "label": "B", "content": "are", "isCorrect": true },
+      { "label": "C", "content": "was" },
+      { "label": "D", "content": "has been" }
+    ],
+    "explanation": "With 'neither…nor', the verb agrees with the subject closer to it. 'Teachers' is plural, so use 'are'."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 3,
+    "stem": "If I _____ a millionaire, I would build a school in my village.",
+    "options": [
+      { "label": "A", "content": "am" },
+      { "label": "B", "content": "was" },
+      { "label": "C", "content": "were", "isCorrect": true },
+      { "label": "D", "content": "have been" }
+    ],
+    "explanation": "Hypothetical / unreal conditional ('would build…') uses 'were' for all persons in formal English."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 2,
+    "stem": "The committee was _____ in its decision.",
+    "options": [
+      { "label": "A", "content": "unanimous", "isCorrect": true },
+      { "label": "B", "content": "anonymous" },
+      { "label": "C", "content": "ambiguous" },
+      { "label": "D", "content": "autonomous" }
+    ],
+    "explanation": "'Unanimous' means in full agreement — the appropriate word for a committee decision. The other options are easily confused but mean different things."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 2,
+    "stem": "He spoke so _____ that everyone in the hall could hear him.",
+    "options": [
+      { "label": "A", "content": "loud" },
+      { "label": "B", "content": "loudly", "isCorrect": true },
+      { "label": "C", "content": "louder" },
+      { "label": "D", "content": "loudest" }
+    ],
+    "explanation": "An adverb ('loudly') is needed to modify the verb 'spoke'. 'Loud' is an adjective."
+  },
+  {
+    "topic": "sentence-completion",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "The teacher's explanation was so _____ that even the slowest student understood.",
+    "options": [
+      { "label": "A", "content": "obtuse" },
+      { "label": "B", "content": "lucid", "isCorrect": true },
+      { "label": "C", "content": "obscure" },
+      { "label": "D", "content": "convoluted" }
+    ],
+    "explanation": "'Lucid' means easily understood. The other options ('obtuse', 'obscure', 'convoluted') all mean unclear or difficult."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "stem": "The expression 'to bury the hatchet' means to:",
+    "options": [
+      { "label": "A", "content": "hide a weapon" },
+      { "label": "B", "content": "make peace", "isCorrect": true },
+      { "label": "C", "content": "start a fight" },
+      { "label": "D", "content": "abandon a plan" }
+    ],
+    "explanation": "An idiom from Native American practice: warring tribes literally buried weapons as a peace gesture. Today it means to settle a dispute."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "'A storm in a teacup' refers to:",
+    "options": [
+      { "label": "A", "content": "a real disaster" },
+      { "label": "B", "content": "an exaggerated fuss over a minor matter", "isCorrect": true },
+      { "label": "C", "content": "an unexpected pleasure" },
+      { "label": "D", "content": "a long-standing problem" }
+    ],
+    "explanation": "An idiom describing a great deal of upset or excitement over something trivial."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "Identify the figure of speech in: 'The wind whispered through the trees.'",
+    "options": [
+      { "label": "A", "content": "Metaphor" },
+      { "label": "B", "content": "Simile" },
+      { "label": "C", "content": "Personification", "isCorrect": true },
+      { "label": "D", "content": "Hyperbole" }
+    ],
+    "explanation": "Personification gives human qualities ('whispered') to a non-human thing (the wind)."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "stem": "Choose the option that has the same vowel sound as the underlined letters in 'fAther'.",
+    "options": [
+      { "label": "A", "content": "cat" },
+      { "label": "B", "content": "calm", "isCorrect": true },
+      { "label": "C", "content": "cake" },
+      { "label": "D", "content": "cap" }
+    ],
+    "explanation": "'Father' has the long /ɑː/ sound, the same as 'calm'. The others use shorter vowel sounds."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "stem": "Which of the following words has stress on the second syllable?",
+    "options": [
+      { "label": "A", "content": "TAble" },
+      { "label": "B", "content": "PHOto" },
+      { "label": "C", "content": "comPUTer", "isCorrect": true },
+      { "label": "D", "content": "BEAutiful" }
+    ],
+    "explanation": "In 'computer' the stress falls on '-PU-' (the second syllable). The others stress the first syllable."
+  },
+  {
+    "topic": "oral-forms",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 3,
+    "stem": "Which word does NOT rhyme with the others?",
+    "options": [
+      { "label": "A", "content": "though" },
+      { "label": "B", "content": "throw" },
+      { "label": "C", "content": "rough", "isCorrect": true },
+      { "label": "D", "content": "low" }
+    ],
+    "explanation": "'Rough' is pronounced /rʌf/. 'Though', 'throw', and 'low' all end in the /oʊ/ sound."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "passage": "The harmattan, a dry and dusty wind, blows across West Africa from late November to mid-March. Originating in the Sahara, it carries fine particles that reduce visibility and cause respiratory discomfort. Despite these challenges, farmers welcome the harmattan because the dry conditions help in harvesting and storing grains.",
+    "stem": "According to the passage, why do farmers welcome the harmattan?",
+    "options": [
+      { "label": "A", "content": "It brings rain to their fields." },
+      { "label": "B", "content": "Its dry conditions aid harvesting and grain storage.", "isCorrect": true },
+      { "label": "C", "content": "It improves visibility on the farms." },
+      { "label": "D", "content": "It cools the climate for workers." }
+    ],
+    "explanation": "The final sentence states explicitly that 'the dry conditions help in harvesting and storing grains'."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2023,
+    "source": "JAMB 2023",
+    "difficulty": 3,
+    "passage": "The harmattan, a dry and dusty wind, blows across West Africa from late November to mid-March. Originating in the Sahara, it carries fine particles that reduce visibility and cause respiratory discomfort. Despite these challenges, farmers welcome the harmattan because the dry conditions help in harvesting and storing grains.",
+    "stem": "The phrase 'these challenges' in the passage refers to:",
+    "options": [
+      { "label": "A", "content": "harvesting and grain storage" },
+      { "label": "B", "content": "the wind's origin in the Sahara" },
+      { "label": "C", "content": "reduced visibility and respiratory discomfort", "isCorrect": true },
+      { "label": "D", "content": "farmers' working conditions" }
+    ],
+    "explanation": "The challenges referenced are those mentioned just before: 'reduce visibility and cause respiratory discomfort'."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "passage": "Nollywood, Nigeria's film industry, is the second largest in the world by output, producing over 2,500 films annually. While early productions were criticised for low budgets and rushed schedules, today's filmmakers leverage digital technology, international co-productions, and streaming platforms to reach global audiences. The industry contributes significantly to Nigeria's GDP and employs hundreds of thousands of Nigerians directly and indirectly.",
+    "stem": "What is the central idea of the passage?",
+    "options": [
+      { "label": "A", "content": "Nollywood films lack quality compared to Hollywood." },
+      { "label": "B", "content": "Nigerian audiences prefer foreign films." },
+      { "label": "C", "content": "Nollywood has evolved into a globally significant and economically important industry.", "isCorrect": true },
+      { "label": "D", "content": "Streaming platforms have replaced cinemas in Nigeria." }
+    ],
+    "explanation": "The passage describes Nollywood's growth, modernisation, and economic contribution — these together support option C as the central idea."
+  },
+  {
+    "topic": "comprehension",
+    "year": 2022,
+    "source": "JAMB 2022",
+    "difficulty": 3,
+    "passage": "Nollywood, Nigeria's film industry, is the second largest in the world by output, producing over 2,500 films annually. While early productions were criticised for low budgets and rushed schedules, today's filmmakers leverage digital technology, international co-productions, and streaming platforms to reach global audiences. The industry contributes significantly to Nigeria's GDP and employs hundreds of thousands of Nigerians directly and indirectly.",
+    "stem": "From the passage, we can infer that early Nollywood productions were:",
+    "options": [
+      { "label": "A", "content": "well funded and carefully made" },
+      { "label": "B", "content": "produced quickly with limited resources", "isCorrect": true },
+      { "label": "C", "content": "primarily aimed at international audiences" },
+      { "label": "D", "content": "all distributed via streaming platforms" }
+    ],
+    "explanation": "'Criticised for low budgets and rushed schedules' directly supports the inference in option B."
+  },
+  {
+    "topic": "summary",
+    "year": 2021,
+    "source": "JAMB 2021",
+    "difficulty": 4,
+    "passage": "The kola nut occupies a central place in Igbo and Yoruba culture. It is offered to honoured guests as a symbol of welcome, used in marriage ceremonies to seal commitments, and broken at the start of important meetings to invoke ancestral blessings. Beyond ceremony, kola is a stimulant whose caffeine-like compounds reduce fatigue, which historically made it valued among traders on long journeys.",
+    "stem": "The passage best summarises kola nut as:",
+    "options": [
+      { "label": "A", "content": "an agricultural export" },
+      { "label": "B", "content": "a ceremonial object with practical stimulant uses", "isCorrect": true },
+      { "label": "C", "content": "a religious sacrament" },
+      { "label": "D", "content": "a food eaten by traders" }
+    ],
+    "explanation": "The passage covers both ceremonial roles (welcome, marriage, meetings) and practical use as a stimulant — option B captures both aspects."
+  },
+  {
+    "topic": "lexis-and-structure",
+    "year": 2019,
+    "source": "JAMB 2019",
+    "difficulty": 2,
+    "stem": "The book belongs to _____.",
+    "options": [
+      { "label": "A", "content": "she and I" },
+      { "label": "B", "content": "she and me" },
+      { "label": "C", "content": "her and me", "isCorrect": true },
+      { "label": "D", "content": "her and I" }
+    ],
+    "explanation": "After a preposition ('to'), use object pronouns: 'her' and 'me'. Test by removing one: 'belongs to me' (correct), not 'belongs to I'."
+  },
+  {
+    "topic": "synonyms-antonyms",
+    "year": 2019,
+    "source": "JAMB 2019",
+    "difficulty": 2,
+    "stem": "Choose the word nearest in meaning to: 'METICULOUS'",
+    "options": [
+      { "label": "A", "content": "careless" },
+      { "label": "B", "content": "thorough", "isCorrect": true },
+      { "label": "C", "content": "rude" },
+      { "label": "D", "content": "noisy" }
+    ],
+    "explanation": "'Meticulous' means showing great attention to detail — i.e. thorough."
+  },
+  {
+    "topic": "idioms-and-figures",
+    "year": 2020,
+    "source": "JAMB 2020",
+    "difficulty": 3,
+    "stem": "'To beat about the bush' means to:",
+    "options": [
+      { "label": "A", "content": "speak directly" },
+      { "label": "B", "content": "avoid the main point", "isCorrect": true },
+      { "label": "C", "content": "search for something" },
+      { "label": "D", "content": "make a lot of noise" }
+    ],
+    "explanation": "An idiom meaning to talk about unimportant things instead of addressing the real issue."
+  }
+]

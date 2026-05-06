@@ -1,0 +1,30 @@
+{
+  "jamb-utme": [
+    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
+    { "slug": "english-language", "name": "English Language", "sortOrder": 2 },
+    { "slug": "physics", "name": "Physics", "sortOrder": 3 },
+    { "slug": "chemistry", "name": "Chemistry", "sortOrder": 4 },
+    { "slug": "biology", "name": "Biology", "sortOrder": 5 },
+    { "slug": "literature-in-english", "name": "Literature in English", "sortOrder": 6 },
+    { "slug": "government", "name": "Government", "sortOrder": 7 },
+    { "slug": "economics", "name": "Economics", "sortOrder": 8 },
+    { "slug": "geography", "name": "Geography", "sortOrder": 9 },
+    { "slug": "history", "name": "History", "sortOrder": 10 },
+    { "slug": "crk", "name": "Christian Religious Knowledge", "sortOrder": 11 },
+    { "slug": "irk", "name": "Islamic Religious Knowledge", "sortOrder": 12 },
+    { "slug": "agricultural-science", "name": "Agricultural Science", "sortOrder": 13 },
+    { "slug": "commerce", "name": "Commerce", "sortOrder": 14 },
+    { "slug": "accounting", "name": "Accounting", "sortOrder": 15 }
+  ],
+  "waec-ssce": [
+    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
+    { "slug": "english-language", "name": "English Language", "sortOrder": 2 },
+    { "slug": "physics", "name": "Physics", "sortOrder": 3 },
+    { "slug": "chemistry", "name": "Chemistry", "sortOrder": 4 },
+    { "slug": "biology", "name": "Biology", "sortOrder": 5 }
+  ],
+  "neco-ssce": [
+    { "slug": "mathematics", "name": "Mathematics", "sortOrder": 1 },
+    { "slug": "english-language", "name": "English Language", "sortOrder": 2 }
+  ]
+}
