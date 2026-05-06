@@ -15,3 +15,4 @@ export * from './social';
 export * from './app-settings';
 export * from './consent';
 export * from './exam-waitlist';
+export * from './study-plans';

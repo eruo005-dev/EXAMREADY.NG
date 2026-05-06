@@ -9,6 +9,8 @@ import { getAdminUser } from '@/lib/auth/server';
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/questions', label: 'Questions' },
+  { href: '/questions/generate', label: '↳ Generate with AI' },
+  { href: '/questions/ai-queue', label: '↳ AI moderation queue' },
   { href: '/users', label: 'Users' },
   { href: '/moderation', label: 'Moderation' },
   { href: '/broadcasts', label: 'Broadcasts' },

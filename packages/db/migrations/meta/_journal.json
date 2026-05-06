@@ -36,6 +36,13 @@
       "when": 1778075247207,
       "tag": "0004_pink_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778076661223,
+      "tag": "0005_cheerful_cardiac",
+      "breakpoints": true
     }
   ]
 }

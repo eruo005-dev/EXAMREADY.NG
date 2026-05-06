@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.1",
     "@examready/db": "workspace:*",
     "@examready/notifications": "workspace:*",
     "@examready/shared": "workspace:*",

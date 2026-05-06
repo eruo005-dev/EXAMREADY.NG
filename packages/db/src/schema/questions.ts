@@ -41,6 +41,13 @@ export const questions = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     createdBy: uuid('created_by'),
     /**
+     * NULL when human-authored. Set to the model id (e.g. 'claude-haiku-4-5')
+     * for questions produced by /api/admin/questions/generate-with-ai. The
+     * admin moderation queue lists rows where this is non-null AND
+     * is_active=false (pending review).
+     */
+    generatedByModel: varchar('generated_by_model', { length: 100 }),
+    /**
      * search_text is a Postgres GENERATED ALWAYS AS (...) STORED column.
      * App code never writes it. Meilisearch sync (later sprint) reads this
      * single field instead of concatenating client-side.
@@ -63,6 +70,9 @@ export const questions = pgTable(
       .on(t.year, t.examId)
       .where(sql`${t.year} IS NOT NULL`),
     frequencyIdx: index('questions_frequency_idx').on(t.frequencyScore),
+    moderationQueueIdx: index('questions_moderation_queue_idx')
+      .on(t.createdAt.desc())
+      .where(sql`${t.generatedByModel} IS NOT NULL AND ${t.isActive} = false`),
     difficultyCheck: check(
       'questions_difficulty_check',
       sql`${t.difficulty} BETWEEN 1 AND 5`,
