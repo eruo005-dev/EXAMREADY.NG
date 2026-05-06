@@ -1,0 +1,4 @@
+exam_slug,subject_slug,topic_slug,difficulty,year,source,stem,explanation,option_a,option_b,option_c,option_d,correct_option
+jamb-utme,mathematics,algebra,2,2023,JAMB 2023,"Solve: 2x + 5 = 17","Subtract 5 from both sides to get 2x = 12, then divide by 2 to get x = 6.",x = 4,x = 6,x = 12,x = 24,B
+jamb-utme,mathematics,algebra,3,2022,JAMB 2022,"Factorise: x² - 9","Difference of two squares: a² - b² = (a-b)(a+b). Here a=x and b=3, so the answer is (x-3)(x+3).",(x-3)²,(x-3)(x+3),(x+3)²,x(x-9),B
+jamb-utme,english-language,synonyms-antonyms,2,2023,JAMB 2023,"Choose the word OPPOSITE in meaning to: ABUNDANT","'Abundant' means present in great quantity. Its opposite is 'scarce' meaning insufficient or rare in supply.",plentiful,sufficient,scarce,common,C
