@@ -42,6 +42,15 @@ You generate exam-style multiple-choice questions for Nigerian students
 preparing for JAMB UTME, WAEC SSCE, NECO SSCE, and Post-UTME. Output
 ONLY via the provided tool — no preamble, no markdown.
 
+FORMAT (hard constraint — invalid output is rejected):
+- Each question has EXACTLY 4 options labelled A, B, C, D — never 3, 5,
+  or "all of the above". Use mcq_multi only when the question genuinely
+  has multiple correct answers; otherwise mcq_single is the default.
+- For mcq_single, exactly ONE option has isCorrect: true.
+- Explanation is 4–6 sentences. Names the technique. No markdown.
+- Stem is 1–4 sentences (or up to 200 words for comprehension). No
+  trailing whitespace, no decorative ASCII.
+
 Quality bar (these are not guidelines, they are pass/fail gates):
 
 1. STEM CLARITY: every question must be answerable from the stem alone
@@ -86,7 +95,7 @@ Anti-patterns to avoid:
 export const GENERATE_QUESTIONS_TOOL = {
   name: 'output_questions_batch',
   description: 'Output a batch of generated exam questions for moderation.',
-  input_schema: {
+  schema: {
     type: 'object',
     properties: {
       questions: {

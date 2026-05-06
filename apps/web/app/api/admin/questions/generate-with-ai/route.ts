@@ -1,10 +1,14 @@
 /**
  * POST /api/admin/questions/generate-with-ai
  *
- * Admin-only. Generates N questions for a topic via Claude (with strict
- * structured output via tool_use), inserts them as is_active=false +
- * generated_by_model=<model>. Admin reviews each one in the moderation
- * UI before approving.
+ * Admin-only. Generates N questions for a topic via the provider
+ * abstraction with strict structured output (tool_use ↔ function calling),
+ * inserts them as is_active=false + generated_by_model=<model>. Admin
+ * reviews each one in the moderation UI before approving.
+ *
+ * Provider routing (Sprint 5): DeepSeek primary, Claude Haiku fallback.
+ * Generated questions are human-reviewed before they go live so the cost
+ * win on DeepSeek matters more than the last 5% of authoring quality.
  *
  * No daily quota — this is an admin tool, the cost is borne by the
  * platform. Throughput limited to admin defaults via defineRoute.
@@ -20,13 +24,15 @@ import {
 import { adminGenerateQuestionsInputSchema } from '@examready/shared';
 import { eq } from 'drizzle-orm';
 
-import { AI_MODELS, getAnthropic, logAiCall } from '@/lib/ai/client';
+import { logAiCall } from '@/lib/ai/client';
+import { AI_MODELS } from '@/lib/ai/constants';
 import {
   buildGenerateQuestionsUserMessage,
   generatedQuestionBatchSchema,
   GENERATE_QUESTIONS_SYSTEM_PROMPT,
   GENERATE_QUESTIONS_TOOL,
 } from '@/lib/ai/prompts/generate-questions';
+import { getProvider, ProviderError, runWithFallback } from '@/lib/ai/providers';
 import { ApiError, defineRoute, NotFoundError, ok } from '@/lib/api/handler';
 import { db } from '@/lib/db';
 
@@ -38,8 +44,11 @@ export const POST = defineRoute({
 })(async ({ parsed, user }) => {
   if (!user) throw new Error('user required');
 
-  const anthropic = getAnthropic();
-  if (!anthropic) {
+  const routing = AI_MODELS.questionGen;
+  const primaryConfigured = getProvider(routing.primary.provider).isConfigured();
+  const fallbackConfigured =
+    routing.fallback !== null && getProvider(routing.fallback.provider).isConfigured();
+  if (!primaryConfigured && !fallbackConfigured) {
     throw new ApiError('BAD_GATEWAY', 'AI features are not configured on this deployment.', 503);
   }
 
@@ -73,26 +82,28 @@ export const POST = defineRoute({
   let inputTokens = 0;
   let outputTokens = 0;
   let succeeded = false;
+  let usedProvider = routing.primary.provider;
+  let usedModel = routing.primary.model;
+  let wasFallback = false;
 
   try {
-    const completion = await anthropic.messages.create({
-      model: AI_MODELS.generateQuestions,
-      max_tokens: 16384,
-      system: GENERATE_QUESTIONS_SYSTEM_PROMPT,
-      tools: [GENERATE_QUESTIONS_TOOL],
-      tool_choice: { type: 'tool', name: 'output_questions_batch' },
-      messages: [{ role: 'user', content: userMessage }],
-    });
+    const outcome = await runWithFallback(routing.primary, routing.fallback, (provider, model) =>
+      provider.toolUse({
+        model,
+        maxTokens: 16384,
+        systemPrompt: GENERATE_QUESTIONS_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMessage }],
+        tool: GENERATE_QUESTIONS_TOOL,
+      }),
+    );
 
-    inputTokens = completion.usage?.input_tokens ?? 0;
-    outputTokens = completion.usage?.output_tokens ?? 0;
+    inputTokens = outcome.result.inputTokens;
+    outputTokens = outcome.result.outputTokens;
+    usedProvider = outcome.provider;
+    usedModel = outcome.model;
+    wasFallback = outcome.wasFallback;
 
-    const toolUseBlock = completion.content.find((b) => b.type === 'tool_use');
-    if (!toolUseBlock || toolUseBlock.type !== 'tool_use') {
-      throw new ApiError('BAD_GATEWAY', 'AI did not return structured questions.', 502);
-    }
-
-    const validated = generatedQuestionBatchSchema.safeParse(toolUseBlock.input);
+    const validated = generatedQuestionBatchSchema.safeParse(outcome.result.input);
     if (!validated.success) {
       // eslint-disable-next-line no-console
       console.error('[ai/generate] schema validation failed:', validated.error.flatten());
@@ -126,7 +137,7 @@ export const POST = defineRoute({
             source: 'ExamReady Practice',
             explanation: explanationWithWhyWrong,
             isActive: false, // moderation queue gate
-            generatedByModel: AI_MODELS.generateQuestions,
+            generatedByModel: usedModel,
             createdBy: user.profile.id,
           })
           .returning({ id: questions.id });
@@ -152,18 +163,27 @@ export const POST = defineRoute({
         generated: insertedIds.length,
         questionIds: insertedIds,
         topic: topicRow.topicName,
-        nextStep: 'Review the generated questions in /admin/questions/ai-queue and approve, edit, or reject each.',
+        provider: usedProvider,
+        model: usedModel,
+        wasFallback,
+        nextStep:
+          'Review the generated questions in /admin/questions/ai-queue and approve, edit, or reject each.',
       },
       { status: 201 },
     );
   } catch (err) {
+    if (err instanceof ProviderError) {
+      usedProvider = err.provider;
+    }
     if (err instanceof ApiError) throw err;
     throw new ApiError('BAD_GATEWAY', 'AI service error. Try again.', 502);
   } finally {
     await logAiCall({
       userId: user.profile.id,
       feature: 'admin_generate_questions',
-      model: AI_MODELS.generateQuestions,
+      provider: usedProvider,
+      model: usedModel,
+      wasFallback,
       inputTokens,
       outputTokens,
       durationMs: Date.now() - start,

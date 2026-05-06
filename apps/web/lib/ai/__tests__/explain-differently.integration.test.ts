@@ -23,12 +23,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, test } from 'vitest';
 
-import { AI_MODELS } from '../client';
+import { AI_MODELS } from '../constants';
 import {
   buildExplainUserMessage,
   EXPLAIN_SYSTEM_PROMPTS,
   type ExplainLevel,
 } from '../prompts/explain-differently';
+
+// This suite exercises the Anthropic-side prompt behaviour. Pidgin always
+// runs on Anthropic Haiku in production; for prompt-regression purposes
+// we drive ALL three levels through the same model so a single test pass
+// is a regression check for the Anthropic prompt surface area.
+const ANTHROPIC_MODEL = AI_MODELS.explainDifferently.pidgin.primary.model;
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
 const itOrSkip = apiKey ? test : test.skip;
@@ -55,8 +61,7 @@ const SAMPLES = [
       { label: 'C', content: '₦4,000', isCorrect: false },
       { label: 'D', content: '₦5,400', isCorrect: false },
     ],
-    explanation:
-      'Selling price = cost × (1 + 0.20) = 1.20 × cost. Cost = 4500 / 1.20 = ₦3,750.',
+    explanation: 'Selling price = cost × (1 + 0.20) = 1.20 × cost. Cost = 4500 / 1.20 = ₦3,750.',
   },
   {
     label: 'Math: trigonometry',
@@ -115,7 +120,7 @@ describe.concurrent('explain-differently integration', () => {
           });
 
           const completion = await anthropic.messages.create({
-            model: AI_MODELS.explainDifferently,
+            model: ANTHROPIC_MODEL,
             max_tokens: 800,
             system: EXPLAIN_SYSTEM_PROMPTS[level],
             messages: [{ role: 'user', content: userMessage }],
@@ -136,7 +141,16 @@ describe.concurrent('explain-differently integration', () => {
           // Level-specific assertions
           if (level === 'in-pidgin') {
             // Should contain at least one Pidgin marker.
-            const pidginMarkers = ['make we', 'una', 'as e be', 'no be', 'go solve', 'the answer na', 'wahala', 'fit'];
+            const pidginMarkers = [
+              'make we',
+              'una',
+              'as e be',
+              'no be',
+              'go solve',
+              'the answer na',
+              'wahala',
+              'fit',
+            ];
             expect(pidginMarkers.some((m) => out.toLowerCase().includes(m))).toBe(true);
             // Should NOT include Yoruba/Igbo/Hausa words frequently mistaken for Pidgin
             const nonPidgin = ['oga', 'biko', 'wallahi'];

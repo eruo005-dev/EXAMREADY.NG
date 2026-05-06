@@ -6,23 +6,30 @@
  *   - with-analogy     : maps the concept onto a Nigerian everyday analogy
  *   - in-pidgin        : authentic Nigerian Pidgin English  ← the moat
  *
+ * Provider routing (Sprint 5):
+ *   - simpler / with-analogy → DeepSeek primary, Claude Haiku 4.5 fallback
+ *   - in-pidgin              → Claude Haiku 4.5 primary, NO fallback
+ *     (DeepSeek's Pidgin is unverified — silently swapping providers
+ *     would degrade the moat without anyone noticing)
+ *
  * The original explanation is the source of truth — the model RESTATES,
  * never re-derives. This avoids the model second-guessing the original
  * and propagating errors.
  *
  * Quotas: free 10/day, basic 100/day, pro unlimited (see lib/ai/quota).
- * Rate-limit (throughput): 5/10s per user.
  */
 
 import { options as optionsTable, questions } from '@examready/db/schema';
 import { explainDifferentlyInputSchema } from '@examready/shared';
 import { eq, inArray } from 'drizzle-orm';
 
-import { AI_MODELS, getAnthropic, logAiCall } from '@/lib/ai/client';
+import { logAiCall } from '@/lib/ai/client';
+import { AI_MODELS, explainLevelToRoutingKey } from '@/lib/ai/constants';
 import {
   buildExplainUserMessage,
   EXPLAIN_SYSTEM_PROMPTS,
 } from '@/lib/ai/prompts/explain-differently';
+import { getProvider, ProviderError, runWithFallback } from '@/lib/ai/providers';
 import { checkAiQuota } from '@/lib/ai/quota';
 import {
   ApiError,
@@ -42,16 +49,19 @@ export const POST = defineRoute({
 })(async ({ parsed, user }) => {
   if (!user) throw new Error('user required');
 
-  const anthropic = getAnthropic();
-  if (!anthropic) {
-    throw new ApiError(
-      'BAD_GATEWAY',
-      'AI features are not configured on this deployment.',
-      503,
-    );
+  const routingKey = explainLevelToRoutingKey(parsed.level);
+  const routing = AI_MODELS.explainDifferently[routingKey];
+
+  // Verify the primary provider is configured. If not, AND there's no
+  // configured fallback either, we have to refuse the call up front.
+  const primaryConfigured = getProvider(routing.primary.provider).isConfigured();
+  const fallbackConfigured =
+    routing.fallback !== null && getProvider(routing.fallback.provider).isConfigured();
+  if (!primaryConfigured && !fallbackConfigured) {
+    throw new ApiError('BAD_GATEWAY', 'AI features are not configured on this deployment.', 503);
   }
 
-  // Quota check BEFORE the (much more expensive) DB lookup + Anthropic call.
+  // Quota check BEFORE the (much more expensive) DB lookup + provider call.
   const quota = await checkAiQuota({
     userId: user.profile.id,
     tier: user.profile.subscriptionTier,
@@ -102,50 +112,87 @@ export const POST = defineRoute({
   });
 
   const start = Date.now();
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let succeeded = false;
-  let errorCode: string | undefined;
 
   try {
-    const completion = await anthropic.messages.create({
-      model: AI_MODELS.explainDifferently,
-      max_tokens: 800,
-      system: EXPLAIN_SYSTEM_PROMPTS[parsed.level],
-      messages: [{ role: 'user', content: userMessage }],
-    });
+    const outcome = await runWithFallback(routing.primary, routing.fallback, (provider, model) =>
+      provider.completion({
+        model,
+        maxTokens: 800,
+        systemPrompt: EXPLAIN_SYSTEM_PROMPTS[parsed.level],
+        messages: [{ role: 'user', content: userMessage }],
+      }),
+    );
 
-    inputTokens = completion.usage?.input_tokens ?? 0;
-    outputTokens = completion.usage?.output_tokens ?? 0;
-
-    // Extract text content. Anthropic returns an array of blocks; for our
-    // simple system-prompt-only call, the first text block is the answer.
-    const textBlock = completion.content.find((b) => b.type === 'text');
-    if (!textBlock || textBlock.type !== 'text') {
+    const explanation = outcome.result.text.trim();
+    if (explanation.length === 0) {
+      await logAiCall({
+        userId: user.profile.id,
+        feature: 'explain_differently',
+        provider: outcome.provider,
+        model: outcome.model,
+        wasFallback: outcome.wasFallback,
+        inputTokens: outcome.result.inputTokens,
+        outputTokens: outcome.result.outputTokens,
+        durationMs: Date.now() - start,
+        succeeded: false,
+        errorCode: 'EMPTY_TEXT',
+      });
       throw new ApiError('BAD_GATEWAY', 'AI returned no text content.', 502);
     }
 
-    succeeded = true;
+    // Log + capture the row id so the response can include it. The
+    // frontend uses aiUsageLogId to attach thumbs-up/down feedback.
+    const aiUsageLogId = await logAiCall({
+      userId: user.profile.id,
+      feature: 'explain_differently',
+      provider: outcome.provider,
+      model: outcome.model,
+      wasFallback: outcome.wasFallback,
+      inputTokens: outcome.result.inputTokens,
+      outputTokens: outcome.result.outputTokens,
+      durationMs: Date.now() - start,
+      succeeded: true,
+      outputText: explanation,
+    });
+
     return ok({
-      explanation: textBlock.text.trim(),
+      explanation,
       level: parsed.level,
+      aiUsageLogId,
       remainingToday:
-        quota.remainingToday === Number.MAX_SAFE_INTEGER ? null : Math.max(0, quota.remainingToday - 1),
+        quota.remainingToday === Number.MAX_SAFE_INTEGER
+          ? null
+          : Math.max(0, quota.remainingToday - 1),
     });
   } catch (err) {
-    errorCode = err instanceof ApiError ? err.code : 'AI_ERROR';
     if (err instanceof ApiError) throw err;
-    throw new ApiError('BAD_GATEWAY', 'AI service error. Try again.', 502);
-  } finally {
+
+    // Determine which provider/model the error came from. ProviderError
+    // carries it; otherwise blame the primary (most likely culprit).
+    const failedProvider = err instanceof ProviderError ? err.provider : routing.primary.provider;
+    const failedModel = routing.primary.model;
     await logAiCall({
       userId: user.profile.id,
       feature: 'explain_differently',
-      model: AI_MODELS.explainDifferently,
-      inputTokens,
-      outputTokens,
+      provider: failedProvider,
+      model: failedModel,
+      inputTokens: 0,
+      outputTokens: 0,
       durationMs: Date.now() - start,
-      succeeded,
-      errorCode,
+      succeeded: false,
+      errorCode: 'AI_ERROR',
     });
+
+    // Pidgin path with no fallback: surface as 503 so the UI can suggest
+    // a different style. Other paths reach here only when both primary
+    // AND fallback failed — same 502 we returned before the abstraction.
+    if (routing.fallback === null) {
+      throw new ApiError(
+        'BAD_GATEWAY',
+        'Pidgin explanation is temporarily unavailable. Try Simpler English or With an analogy instead.',
+        503,
+      );
+    }
+    throw new ApiError('BAD_GATEWAY', 'AI service error. Try again.', 502);
   }
 });

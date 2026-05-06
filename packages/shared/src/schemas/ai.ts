@@ -48,3 +48,16 @@ export const adminGenerateQuestionsInputSchema = z.object({
   difficultyHint: z.enum(['easier', 'harder', 'mixed']).default('mixed'),
 });
 export type AdminGenerateQuestionsInput = z.infer<typeof adminGenerateQuestionsInputSchema>;
+
+export const aiFeedbackInputSchema = z.object({
+  /**
+   * The ai_usage_log row id returned by the AI endpoint that produced the
+   * output the user is rating. The endpoint surfaces this in its JSON
+   * response (or X-AI-Call-Id header for streaming endpoints).
+   */
+  aiUsageLogId: uuidSchema,
+  rating: z.enum(['thumbs_up', 'thumbs_down']),
+  /** Optional free-text explanation. Capped tightly. */
+  comment: z.string().max(1000).optional(),
+});
+export type AiFeedbackInput = z.infer<typeof aiFeedbackInputSchema>;

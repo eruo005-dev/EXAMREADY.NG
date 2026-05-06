@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/questions', label: 'Questions' },
   { href: '/questions/generate', label: '↳ Generate with AI' },
   { href: '/questions/ai-queue', label: '↳ AI moderation queue' },
+  { href: '/ai-quality-review', label: '↳ AI quality review' },
   { href: '/users', label: 'Users' },
   { href: '/moderation', label: 'Moderation' },
   { href: '/broadcasts', label: 'Broadcasts' },
@@ -27,17 +28,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 border-r bg-muted/30 p-4">
+      <aside className="bg-muted/30 w-60 border-r p-4">
         <Link href="/dashboard" className="font-semibold">
           ExamReady <span className="text-primary">Admin</span>
         </Link>
-        <p className="mt-1 text-xs text-muted-foreground">{auth.user.email}</p>
+        <p className="text-muted-foreground mt-1 text-xs">{auth.user.email}</p>
         <nav className="mt-6 space-y-1 text-sm">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="block rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground block rounded-md px-3 py-2"
             >
               {item.label}
             </Link>

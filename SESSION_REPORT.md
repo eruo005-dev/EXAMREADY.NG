@@ -1,152 +1,191 @@
-# Session Report — Sprint 3 (AI features + content import)
+# Session Report — Sprint 5 (DeepSeek hybrid integration)
 
 **Session date:** 2026-05-06
-**Sprint 3 commit:** `98edaf8`
-**Branch:** main, will push at end of report
-**Predecessor:** prior session report covered Sprint 1 + Sprint 2; that content moved into CHANGELOG.md and is preserved in commit history at `fe140a6`.
+**Sprint 5 base:** Sprint 4 working tree (DeepSeek changes layered on top)
+**Predecessor report:** Sprint 4 content moves into CHANGELOG.md and is preserved in git history.
 
-## Sprint 3 — completed (4/4 in scope)
+---
 
-| # | Task | Status | Notes |
-|---|---|---|---|
-| 1 | `POST /api/ai/tutor/chat` streaming | ✅ | Multi-turn chat against Claude Sonnet 4.6, raw text/plain streaming (not SSE — simpler for plain prose generation), prepends synthetic context turn from question + last 3 wrong attempts when `questionId` provided. Daily cap 5/50/∞ (free/basic/pro). System prompt forbids markdown + sycophantic openers, names MANI helpline (+234 809 210 6493) for distress cases. |
-| 2 | `POST /api/ai/explain-differently` | ✅ | Three levels: simpler / with-analogy / in-pidgin. Pidgin prompt is the moat — explicitly forbids Jamaican Patois + Yoruba/Igbo/Hausa, lists authentic Nigerian Pidgin markers (`make we`, `una`, `the answer na`, `wahala`, `fit`), preserves technical terms in English so students recognise them on the exam paper. With-analogy prompt requires Nigerian everyday analogies (akara, danfo, jollof). Haiku 4.5 for cost. Daily cap 10/100/∞. |
-| 3 | `POST /api/ai/study-plan` | ✅ | Structured tool_use output mirrored as Zod schema for parse-safe validation. Computes the user's weak topics from the dashboard heatmap query (last-30-day attempt accuracy), feeds them in. Saves to new `study_plans` table — marks prior current=false, inserts new current=true in a transaction. Plus `GET /api/ai/study-plan` returns the user's current plan. Daily cap 1/5/∞. |
-| 4 | Admin: generate-with-AI + moderation queue | ✅ | `POST /api/admin/questions/generate-with-ai` produces a batch via tool_use, inserts as `is_active=false` + `generated_by_model=<model>`. `GET /api/admin/questions/queue` lists pending. `POST /api/admin/questions/:id/reject` hard-deletes (soft-delete would leave the row stuck in the queue). Admin UI at `/admin/questions/generate` (cascading exam→subject→topic + count + difficulty hint) and `/admin/questions/ai-queue` (approve/edit/reject per question). Sidebar nav has both pages indented under Questions. |
-| - | AI essay grader | ⏳ Skipped per user direction | Not in scope for this sprint per Sprint 3 prompt. Schema + rate-limit pattern from #1–#3 transfer cleanly when it lands. |
+## Provider routing — what shipped
 
-## Architectural decisions made this session
+Hybrid Claude + DeepSeek with explicit per-feature routing. Defined in `apps/web/lib/ai/constants.ts`:
 
-**Per-feature model selection is explicit, not abstracted.** `lib/ai/client.ts` exports an `AI_MODELS` const where each feature names its own model. Sonnet 4.6 vs Haiku 4.5 is a cost/quality tradeoff that should be visible at call site — not buried in a "default model" config that becomes a source of mystery cost overruns. Haiku 4.5 is ~3× cheaper than Sonnet 4.6, so explain-differently (short, fast, single-shot, called by free-tier users) gets Haiku; tutor chat (multi-turn reasoning) gets Sonnet.
+| Feature                                | Primary           | Fallback         | Why this routing                                                                                    |
+| -------------------------------------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------- |
+| Tutor chat                             | Claude Sonnet 4.6 | DeepSeek-V3      | Multi-turn reasoning + Nigerian-English register tuning where quality matters most.                 |
+| Explain-differently / **simpler**      | DeepSeek-V3       | Claude Haiku 4.5 | High volume, lower stakes, plain rewrite.                                                           |
+| Explain-differently / **with-analogy** | DeepSeek-V3       | Claude Haiku 4.5 | Analogy quality is mostly the prompt.                                                               |
+| Explain-differently / **in-pidgin**    | Claude Haiku 4.5  | **NONE**         | Pidgin is the moat. DeepSeek's Pidgin is unverified — silently swapping providers would degrade it. |
+| Study plan                             | DeepSeek-V3       | Claude Haiku 4.5 | Structured tool-use output, low quality risk.                                                       |
+| Admin question generation              | DeepSeek-V3       | Claude Haiku 4.5 | Human-reviewed before going live.                                                                   |
 
-**Streaming uses raw text/plain, not SSE.** The chat endpoint returns a `ReadableStream` over plain UTF-8 chunks. SSE adds parsing complexity (event names, retry intervals, structured error codes) that doesn't pay back for our simple prose-completion case. The frontend can append chunks directly to a buffer; on error it sees the connection close abruptly and shows a "try again" message. Switching to SSE later is straightforward if we add multi-stream UX features (thinking indicators, tool-use animations).
+**Pidgin is the lone exception**: when the Anthropic Haiku Pidgin call fails, the API returns 503 to the client and the UI suggests "Try Simpler English or With an analogy." We never silently call DeepSeek for Pidgin.
 
-**Two-layer quota enforcement.** The `lib/ai/quota.ts` module separates throughput (Redis sliding window — burst protection, 5/10s) from daily caps (DB count over `ai_usage_log` — durable, tier-aware). Throughput runs first as a cheap gate; the DB count is the authoritative limit. Means Redis can drop a request budget on restart without resetting users' daily quota — important because the daily cap is the user-facing contract on the pricing page.
+**Why Haiku as the fallback (not Sonnet)?** Cost — fallback is a tail event, no need to pay Sonnet rates for it. Plus Haiku runs the same JSON tool schema; quality difference on structured output is small.
 
-**Tool_use for structured output, not free-form JSON-in-text.** `study-plan` and `generate-with-ai` both use Anthropic's `tool_choice: { type: 'tool', name: '...' }` to force structured output. The same JSON schema is duplicated as both the tool's `input_schema` (sent to Claude) and a Zod schema (for validation). Costs us a small amount of duplication but avoids two failure modes: (1) markdown fences around JSON, (2) prose preamble before the JSON. We Zod-validate every tool output before persisting.
+---
 
-**Tutor context as a synthetic first user turn, not in the system prompt.** The system prompt is meant to be cacheable across users (per Anthropic's prompt-caching pricing). Per-user context (current question, recent mistakes) goes in the first user-turn message. Keeps the cache hit rate high even when each conversation has different context.
+## Cost savings projections (under hybrid)
 
-**AI usage telemetry stores counts, not content.** `ai_usage_log` records `(user_id, feature, model, input_tokens, output_tokens, duration_ms, succeeded)` per call. We never store the prompt or completion body. Two reasons: (1) PII risk — students may type their phone number into the chat — and (2) the signal we need is "how many calls" and "what's the cost", not "what was said". If a regression investigation later needs the conversation, read it from PostHog (which captures sanitized chat events) or replay from logs.
+Same 80/15/5 free/basic/pro mix. Pricing assumed: Sonnet $3 in / $15 out, Haiku $0.25 / $1.25, DeepSeek-V3 ~$0.27 / ~$1.10 (verify at api-docs.deepseek.com/quick_start/pricing before pricing decisions).
 
-**AI-rejected questions are hard-deleted, not soft-deleted.** The moderation queue query filters on `is_active=false AND generated_by_model IS NOT NULL`. Soft-delete via PATCH would leave rejected questions in the queue forever. The new `POST /api/admin/questions/:id/reject` endpoint hard-deletes — but defensively refuses if any `attempt_answers` already reference the row.
+| DAU     | Sprint 4 all-Claude    | Sprint 5 hybrid             | Saving           |
+| ------- | ---------------------- | --------------------------- | ---------------- |
+| 1,000   | $94/day (~$2.8k/mo)    | **~$58/day (~$1.7k/mo)**    | -38% (~$1.1k/mo) |
+| 10,000  | $939/day (~$28k/mo)    | **~$569/day (~$17k/mo)**    | -39% (~$11k/mo)  |
+| 100,000 | $9,386/day (~$282k/mo) | **~$5,734/day (~$171k/mo)** | -39% (~$111k/mo) |
 
-## Addressing the 5 open questions from the prior report
+The biggest single-call win: study-plan dropped from $0.054 to $0.004 per generation (13× cheaper). Question generation 13× cheaper too. See [API_COSTS.md](API_COSTS.md) for the full breakdown plus a "what if we full-switch to DeepSeek" appendix that shows another ~$140k/month at 100k DAU is on the table once Pidgin is verified on DeepSeek (suite in PIDGIN_SAMPLES.md).
 
-> **1. Real Termii / Supabase / Paystack accounts — provider walkthrough scripts?**
+---
 
-I won't write walkthrough "scripts" — they go stale fast and provider UIs change quarterly. Instead, the README's "Third-party integrations" section already has the relevant signup steps per provider. What's actually useful is a **production-readiness checklist** I can add as a separate file. **Recommend:** add `LAUNCH_CHECKLIST.md` in a future session listing the exact env-var fills + dashboard configurations needed before going live, formatted so you tick boxes. Not done this session.
+## Sprint 5 — engineering deliverables
 
-> **2. Founder bio in /about — replace placeholder.**
+| #   | Task                                       | Status | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --- | ------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Provider abstraction layer                 | ✅     | `lib/ai/providers/` — `types.ts` (AiProvider interface), `anthropic.ts`, `deepseek.ts` (OpenAI SDK pointed at `api.deepseek.com/v1`), `index.ts` (factory + `runWithFallback`). Each provider implements `completion`, `stream`, `toolUse`. `ProviderError` carries `isRetryable` so the wrapper knows when to retry.                                                                                                                            |
+| 2   | Tool use / structured output compatibility | ✅     | One JSON-Schema in the prompt files; Anthropic adapts to `tools[].input_schema`, DeepSeek adapts to `tools[].function.parameters`. DeepSeek's `arguments` JSON string is parsed inside the adapter so callers see the same `{ input: object }` shape regardless of provider. Cross-provider integration test asserts both providers' output passes the same Zod schema.                                                                          |
+| 3   | DeepSeek-specific prompt tuning            | ✅     | Tightened the `SHARED_CONSTRAINTS` in `prompts/explain-differently.ts` with explicit "4–6 sentences, 2 paragraphs max, no preamble" — DeepSeek skews verbose by default. Tightened study-plan and generate-questions prompts with explicit required-field language ("All 7 days must be present", "Each question has EXACTLY 4 options labelled A, B, C, D"). One prompt per feature works for both providers — no per-provider variants needed. |
+| 4   | Cost tracking + provider visibility        | ✅     | `ai_usage_log` got two new columns (`provider`, `was_fallback`) via migration `0007_petite_mariko_yashida.sql` — existing rows backfill as `'anthropic'` via the column default. `/admin/ai-quality-review` now shows per-feature provider breakdown ("DeepSeek: 320, Anthropic: 12 ↩4 fallback") and per-sample provider/fallback badges.                                                                                                       |
+| 5   | Fallback wrapper + Pidgin no-fallback rule | ✅     | `runWithFallback(primary, fallback, op)` — primary fails with `isRetryable=true`, fallback runs and result carries `wasFallback: true`. Pidgin path passes `fallback: null`; primary error rethrows with no DeepSeek call. 4 unit tests cover happy path, retryable failure, non-retryable failure (4xx — no fallback), and the Pidgin no-fallback case (mocks DeepSeek and asserts it's never called).                                          |
+| 6   | Env + secrets + health endpoint            | ✅     | `DEEPSEEK_API_KEY` added to `.env.example` with the platform.deepseek.com link. `LAUNCH_CHECKLIST.md` updated with the DeepSeek vendor section ("fund $20+ to clear new-account hold"). `GET /api/health/ai` (admin-only) probes both providers with a 4-token request and returns latency + status — operator dashboard for "is DeepSeek up right now."                                                                                         |
+| 7   | Tests                                      | ✅     | 4 fallback unit tests (mocked, always run); 5 DeepSeek integration tests (skip without `DEEPSEEK_API_KEY`); 3 cross-provider integration tests (skip unless BOTH keys present); the existing 15 prompt tests still pass; the existing Anthropic integration test now correctly skips instead of failing at module load.                                                                                                                          |
+| 8   | Documentation                              | ✅     | `apps/web/lib/ai/README.md` (routing rationale + how to add a third provider in <2h). `API_COSTS.md` rewritten with hybrid projections + full-DeepSeek appendix. `LAUNCH_CHECKLIST.md` updated. This `SESSION_REPORT.md`. `CHANGELOG.md` Sprint 5 entry below.                                                                                                                                                                                   |
 
-Still a placeholder. The paragraph from Sprint 1 is realistic-but-fictional (the "scored 198, then 287" story). Needs your actual story before launch — I can't supply it. Marked PLACEHOLDER in the source comment so it's findable via grep.
+---
 
-> **3. WhatsApp Business number in /contact — placeholder.**
+## Architectural decisions made this sprint
 
-Still `+2348012345678` in `apps/web/app/(marketing)/contact/page.tsx`. Replace once your Termii Business account is verified and you have the real number. Single line change.
+**One JSON-Schema, two adapters.** The prompt files (`prompts/study-plan.ts`, `prompts/generate-questions.ts`) export a `ToolDefinition` with `name`, `description`, `schema`. The schema is plain JSON-Schema. Each provider's adapter wraps it in its native shape (`input_schema` for Anthropic, `function.parameters` for DeepSeek). One source of truth, no drift. Same schema also feeds the Zod validator that runs on the parsed output, so persistence sees a validated shape regardless of which provider answered.
 
-> **4. AdSense ad unit IDs — empty until approval.**
+**Pidgin has `fallback: null`, not "skip the wrapper."** The routing config encodes the Pidgin no-fallback rule explicitly — `runWithFallback` sees `null` and rethrows. This means the _same code path_ handles Pidgin and the others; no special "if pidgin then call directly" branch in the route handler. The explicit `null` is the load-bearing part: a future reader can grep for it and see "Pidgin must never fall back" without reading the route handler. There's a unit test that mocks both providers and asserts DeepSeek is never called when `fallback: null`.
 
-Per-placement env vars (`NEXT_PUBLIC_ADSENSE_SLOT_*`) are documented in `.env.example` and read by `AdSlot` placement-by-placement. Until AdSense approves your application + you create the ad units in their dashboard, leave them empty — `AdSlot` returns null when slot ID is missing, so nothing breaks. The kill switch in `/admin/ads-toggle` is a separate gate (admin-controllable without a redeploy).
+**The fallback wrapper accepts an injectable resolver.** `runWithFallback(primary, fallback, op, resolver?)` — production omits the fourth arg and gets the global factory; tests pass a fake resolver to inject mocks. This dodges the vi.spyOn-on-namespace-imports problem (vi.spyOn doesn't intercept _internal_ binding calls within a module). Tests stay simple and the production path is unchanged.
 
-> **5. Sprint 2 deferred — commission an SME for question content?**
+**Streaming + fallback only at init time.** If the primary stream errors _before_ any text reaches the client, we fall back. If it errors _mid-stream_, we just close — restarting from the secondary provider would emit a second partial response, which is worse UX than the client showing "connection lost, try again." Documented in the route handler comment.
 
-This is the single most-leveraged decision left. **My read remains:** commission, don't write yourself. The platform now has TWO paths to ingest content:
+**Provider field is `varchar(20)`, not a `pg_enum`.** Adding a third provider should be a single-line change in TypeScript — wrapping `provider` in a Postgres enum forces a migration every time. Validation lives at the application layer (the `ProviderName` union).
 
-  - Path A: human SME writes via the CSV import (`/api/admin/questions/import` → `CSV_FORMAT.md`). Predictable cost, predictable quality.
-  - Path B (NEW this sprint): admin uses `/admin/questions/generate` to draft a batch via Claude, then reviews each in `/admin/questions/ai-queue` before approving. Faster volume, but requires human review on every question (Sprint 3's deliberate guardrail — generated questions never go live without a human approval click).
+**Admin AI quality view aggregates per (feature, provider).** The summary card stack now shows fallback count alongside total calls and the per-provider split. So if DeepSeek goes flaky, the admin sees `deepseek: 320 ↩45 fallback` next to the feature card without digging into raw logs. Sample list also shows provider + fallback badges per sample so register comparisons can be filtered visually.
 
-A practical approach: use Path B for first-draft volume, Path A for licensed real past papers, and have an SME review the AI-generated batches at ~30 questions/hour (~₦500 per question reviewed beats ₦1,500 per question authored from scratch).
+---
+
+## DeepSeek quirks worth knowing
+
+Discovered while building the abstraction (some of these come up in the integration tests when a key is wired):
+
+- **Tool arguments arrive as a JSON string, not an object.** OpenAI's API (which DeepSeek mirrors) returns `tool_calls[].function.arguments` as a string that needs `JSON.parse`. Anthropic returns a parsed object. The DeepSeek adapter parses inside, so callers always see `{ input: object }`. If parsing fails the adapter throws `ProviderError(isRetryable: false)` — retrying on the same prompt won't help, but the fallback runs.
+- **Length defaults skew verbose.** Without an explicit length constraint in the system prompt, DeepSeek-V3 will emit longer responses than Claude does for the same prompt. This sprint tightened the explain-differently prompt to "4–6 sentences total, 2 short paragraphs at most." Without that, free-tier students were getting walls of text.
+- **Stream usage chunk arrives at the END.** OpenAI's `stream: true` with `stream_options: { include_usage: true }` puts the `usage` block in the final chunk. Anthropic puts `input_tokens` in `message_start` and `output_tokens` in `message_delta`. The adapter normalises both into our `{ kind: 'usage', inputTokens?, outputTokens? }` so callers don't care.
+- **`message.content` can be `null` on tool-call responses.** When the model decides to call a tool, `content` is null and the data is in `tool_calls`. We don't read `content` on the tool-use code path so this isn't a bug, but worth knowing for future features.
+- **`temperature` ranges differ.** Anthropic: 0–1. DeepSeek (OpenAI-compatible): 0–2 with default 1.0. We pass through unchanged but if a future feature wants creative output above 1.0 it'll only work on DeepSeek.
+
+---
 
 ## Build state
 
-- `pnpm install` — green (~16s, +1 dep: @anthropic-ai/sdk@0.30.1)
-- `pnpm db:generate` — green; new migration `0005_cheerful_cardiac.sql` covers all three schema changes
-- `pnpm typecheck` — green across all 6 packages
-- `pnpm lint` — green across all 6 packages
-- `pnpm build` — not re-run this session; Sprint 3 changes are typecheck+lint clean so no expected regressions, but recommend running before next deploy
+- `pnpm typecheck` — green across all 7 packages
+- `pnpm lint` — green across all 7 packages, max-warnings 0 enforced
+- `pnpm db:generate` — green; new migration `0007_petite_mariko_yashida.sql`
+- `pnpm test` — **49 passing, 25 skipped, 0 failing**
+  - 15 prompt tests (always run, no key needed)
+  - 4 fallback unit tests (always run, mocked)
+  - 8 CSV import tests (always run)
+  - 15 cron-time tests (always run)
+  - 7 PII redaction tests (always run)
+  - 15 Anthropic explain-differently integration tests (skipped without `ANTHROPIC_API_KEY`)
+  - 5 DeepSeek integration tests (skipped without `DEEPSEEK_API_KEY`)
+  - 3 cross-provider tests (skipped unless BOTH keys set)
+  - 2 daily-reminder DB tests + 2 internal skips
+- **Sprint 4's known integration-test module-load bug is incidentally fixed** — the test now imports `AI_MODELS` from `lib/ai/constants.ts` (no DB dependency) instead of `lib/ai/client.ts` (which loaded `lib/db.ts`). Skips correctly when no key.
 
-## Test snapshot
-
-| Scope | New tests this sprint | Status |
-|---|---|---|
-| `apps/web/lib/ai/__tests__/prompts.test.ts` | 15 prompt-construction tests | All passing locally |
-| `apps/web/lib/ai/__tests__/explain-differently.integration.test.ts` | 15 integration tests (5 questions × 3 levels) | Skip without `ANTHROPIC_API_KEY`; not run this session |
-| **Total Sprint 3** | **30** | |
-| **Cumulative across Sprints 1–3** | **65** | (35 prior + 30 new) |
-
-Prompt tests run on every CI build (no API key needed). Integration tests run on demand:
-```
-ANTHROPIC_API_KEY=sk-ant-... pnpm --filter @examready/web test
-```
-
-Integration test cost ~$0.015 per full run (15 calls × Haiku 4.5 pricing). Designed for human-in-the-loop quality verification, not regression prevention — assertions check structural shape (no markdown, Pidgin markers present, no sycophantic opener) but deliberately don't snapshot model wording, since model output varies.
+---
 
 ## Files added/changed
 
 ```
-apps/web/
-  app/api/ai/explain-differently/route.ts                      (new)
-  app/api/ai/tutor/chat/route.ts                                (new — raw streaming Response)
-  app/api/ai/study-plan/route.ts                                (new — POST + GET)
-  app/api/admin/questions/generate-with-ai/route.ts             (new)
-  app/api/admin/questions/queue/route.ts                        (new)
-  app/api/admin/questions/[questionId]/reject/route.ts          (new)
-  lib/ai/client.ts                                              (new — Anthropic wrapper, telemetry)
-  lib/ai/quota.ts                                               (new — two-layer enforcement)
-  lib/ai/prompts/                                               (new — 4 prompt files)
-  lib/ai/__tests__/prompts.test.ts                              (new — 15 tests)
-  lib/ai/__tests__/explain-differently.integration.test.ts      (new — 15 tests, key-gated)
-  package.json                                                  (+ @anthropic-ai/sdk)
+NEW
+  apps/web/lib/ai/constants.ts                                     (AI_MODELS routing)
+  apps/web/lib/ai/README.md                                        (hybrid strategy doc)
+  apps/web/lib/ai/providers/types.ts                               (AiProvider interface)
+  apps/web/lib/ai/providers/anthropic.ts                           (Anthropic adapter)
+  apps/web/lib/ai/providers/deepseek.ts                            (DeepSeek adapter)
+  apps/web/lib/ai/providers/index.ts                               (factory + runWithFallback)
+  apps/web/lib/ai/__tests__/fallback.test.ts                       (4 unit tests, no key)
+  apps/web/lib/ai/__tests__/deepseek.integration.test.ts           (5 integration tests)
+  apps/web/lib/ai/__tests__/cross-provider.integration.test.ts     (3 integration tests)
+  apps/web/app/api/health/ai/route.ts                              (admin liveness probe)
+  packages/db/migrations/0007_petite_mariko_yashida.sql            (provider + was_fallback)
+  packages/db/migrations/meta/0007_snapshot.json
 
-apps/admin/
-  app/(admin)/questions/generate/page.tsx                       (new — generation trigger UI)
-  app/(admin)/questions/ai-queue/page.tsx                       (new — moderation queue UI)
-  app/(admin)/layout.tsx                                        (added 2 nav links)
-
-packages/db/
-  src/schema/study-plans.ts                                     (new — study_plans + ai_usage_log)
-  src/schema/index.ts                                           (re-export)
-  src/schema/questions.ts                                       (+ generated_by_model column + partial index)
-  migrations/0005_cheerful_cardiac.sql                          (new)
-
-packages/shared/
-  src/schemas/ai.ts                                             (new — Zod schemas for AI endpoint inputs)
-  src/schemas/index.ts                                          (re-export)
+MODIFIED
+  apps/web/lib/ai/client.ts                                        (provider+wasFallback in logAiCall)
+  apps/web/lib/ai/prompts/explain-differently.ts                   (length constraint tightening)
+  apps/web/lib/ai/prompts/study-plan.ts                            (tool shape + required-field language)
+  apps/web/lib/ai/prompts/generate-questions.ts                    (tool shape + format constraints)
+  apps/web/lib/ai/__tests__/explain-differently.integration.test.ts (import from constants, fixes Sprint 4 bug)
+  apps/web/app/api/ai/explain-differently/route.ts                 (uses runWithFallback, 503 on Pidgin failure)
+  apps/web/app/api/ai/study-plan/route.ts                          (uses runWithFallback)
+  apps/web/app/api/ai/tutor/chat/route.ts                          (streaming with init-time fallback)
+  apps/web/app/api/admin/questions/generate-with-ai/route.ts       (uses runWithFallback)
+  apps/web/app/api/admin/ai-quality/route.ts                       (per-provider aggregation)
+  apps/admin/app/(admin)/ai-quality-review/page.tsx                (provider/fallback badges)
+  apps/web/package.json                                            (+ openai 6.36.0)
+  packages/db/src/schema/study-plans.ts                            (provider + was_fallback columns)
+  packages/db/migrations/meta/_journal.json                        (migration index)
+  .env.example                                                     (DEEPSEEK_API_KEY slot)
+  LAUNCH_CHECKLIST.md                                              (DeepSeek vendor section)
+  API_COSTS.md                                                     (rewrite with hybrid + appendix)
+  CHANGELOG.md                                                     (Sprint 5 entry)
+  SESSION_REPORT.md                                                (this file)
 ```
 
-Total: 20 new files, 6 modified files, 1 new migration. **5,844 insertions in commit `98edaf8`**.
+12 new files, 17 modified files. One new dependency (`openai@^6.36.0`).
 
-## What I deliberately did not do this session
+---
 
-- **No fake API key.** Integration tests skip when `ANTHROPIC_API_KEY` is unset rather than mock the Anthropic SDK. Mocking would produce false confidence — the real risk in AI features is what the model actually says, not whether the SDK was called.
-- **No "thinking..." spinner UI before the streaming response is wired.** The endpoint exists; a chat-bubble UI component reading the ReadableStream is ~50 lines of frontend that I'll add only after the integration tests have been run by a human and the prompts tuned.
-- **No frontend buttons for explain-differently.** Same logic — endpoint first, UI when the prompt has been quality-reviewed against real questions.
-- **No essay grader.** Explicitly out of scope per your Sprint 3 directive ("Skip the AI essay grader for now — needs more careful rubric design"). Agreed.
-- **No content backfill via the new AI generation pipeline.** That's the natural follow-up but it's Sprint 4 territory (and partly editorial — needs an SME reviewing batches).
+## What I deliberately did not do
+
+- **No real DeepSeek calls.** Tests skip without a key; no key is wired in this autonomous session. The 5 DeepSeek integration tests + 3 cross-provider tests are ready to run the moment a key is set in env (estimate ~$0.005 per full run).
+- **No production deployment.** Same constraint as Sprint 4 — credentials, billing, DNS need a human in the room. Launch checklist is updated.
+- **No prompt-cache implementation.** API_COSTS.md still flags this as cost-lever #1 for when DAU crosses ~3k. Adds Anthropic-specific complexity that doesn't carry over to DeepSeek; defer until volume justifies it.
+- **No A/B test of tutor on DeepSeek vs. Sonnet.** Out of scope per the brief ("Do NOT switch the AI tutor chat to DeepSeek"). Documented in API_COSTS.md as cost-lever #2 for once volume permits.
+- **No Pidgin verification on DeepSeek.** Out of scope per the brief ("Do NOT switch the Pidgin explain-differently level to DeepSeek"). The full-DeepSeek appendix in API_COSTS.md flags this as the gating step before any future "switch everything to DeepSeek" sprint.
+- **No three-way provider routing.** OpenAI / Mistral / etc. are out of scope per the brief ("Do NOT add OpenAI or other providers in this sprint"). Adding a third provider is documented in `lib/ai/README.md` as a <2 hour task.
+- **No `removeAnthropicSDK`.** Both SDKs run side by side. Anthropic still handles tutor + Pidgin; OpenAI SDK handles DeepSeek.
+
+---
+
+## Pidgin status — STILL UNVERIFIED BY HUMAN
+
+This was true at end of Sprint 4 and remains true at end of Sprint 5. The Sprint 5 changes don't touch the Pidgin path's primary provider (still Claude Haiku 4.5) or the Pidgin prompt itself. So [PIDGIN_SAMPLES.md](PIDGIN_SAMPLES.md)'s 15-test verification suite still needs to run with a real Anthropic key against real seeded questions. **Recommended:** run it during the LAUNCH_CHECKLIST §4 task once production Anthropic is wired.
+
+The Sprint 5 architectural change relevant to Pidgin: the no-fallback rule is now mechanically enforced in `constants.ts` (`fallback: null`) and verified by a unit test. Even if a future engineer naively adds DeepSeek-everywhere, the Pidgin route can't accidentally start calling it without that test failing AND a code change to `constants.ts`.
+
+---
 
 ## Open questions for you when you return
 
-1. **`ANTHROPIC_API_KEY` in Vercel staging.** Set it before testing AI features end-to-end. Until set, all four endpoints return `503 BAD_GATEWAY` with the message "AI features are not configured on this deployment." That's the right behaviour for a gracefully-degraded missing-key state.
+1. **Wire `DEEPSEEK_API_KEY`.** Sign up at platform.deepseek.com, fund $20, generate the key, set it in Vercel for `web` (production AND staging). Hit `GET /api/health/ai` once both keys are in — both providers should return `ok: true` within 5s.
 
-2. **Daily-cap thresholds.** I picked free=5/10/1 (tutor/explain/plan) and basic=50/100/5 based on your Sprint 3 prompt and reasonable defaults. Once you have real usage data, revisit. Constants are in `apps/web/lib/ai/quota.ts` `DAILY_CAPS`.
+2. **Run the integration tests once the key is set.** `DEEPSEEK_API_KEY=sk-... pnpm --filter @examready/web test` — the 5 DeepSeek + 3 cross-provider tests will run for ~$0.01 total. Watch for: tool-use validation passing, length-constraint compliance on explain-differently outputs, stream usage chunks arriving.
 
-3. **Pidgin prompt verification.** The 15 integration tests assert structural Pidgin markers, but the real quality check is reading 10 generated explanations and judging whether they sound like a Nigerian student would actually understand them. **Recommend:** when you set the API key, run the integration tests and read the Pidgin outputs. If anything sounds off (Yoruba slipping in, register too formal/informal, technical terms wrongly translated), the system prompt at `apps/web/lib/ai/prompts/explain-differently.ts` is where to tune.
+3. **Pidgin verification suite — when?** Same answer as Sprint 4. PIDGIN_SAMPLES.md has the rubric. Run during launch-checklist §4.
 
-4. **Tutor context — should it include the user's STRENGTHS too?** Right now `buildTutorContextMessage` only injects recent mistakes. There's a case for also injecting "strong topics" so the tutor knows what they don't need to re-explain. Left it out for sprint scope but worth ~15 minutes when the feature ships and we see how students actually use the chat.
+4. **Cost projection sanity check.** API_COSTS.md projects ~$1.7k/mo at 1k DAU under the hybrid mix (~$2.8k/mo under Sprint 4's all-Claude). Worth pricing-team review before pricing-page changes — basic at ₦5,000/mo still has plenty of headroom over the new $0.467/day basic worst-case.
 
-5. **Generated-question review burden.** At 10 questions per generation × the 1,800-question target from Sprint 2, that's 180 generations and 180 review sessions. Even at 30 questions/hour reviewed, that's 60 hours of admin time. **Recommend:** track approval rate per generation batch; if it's >85%, consider auto-approving easier difficulty ranges and routing only difficulty 4–5 + comprehension types to human review. Don't ship that until you have the data to justify it.
+5. **Sprint 3's question-content commission decision is _still_ open.** Sprint 4 didn't move on it, Sprint 5 didn't either (out of scope). The AI moderation pipeline + J/K/A/R/E shortcuts mean an SME can review fast (~30/hour) at the new ~$0.001/question DeepSeek cost, but you still need the SME. Recommend: name a reviewer + commit to a per-batch SLA before launch checklist starts ticking.
 
-## Recommended next steps when you return
+## Recommended next sprint focus
 
-1. **Set `ANTHROPIC_API_KEY` in Vercel staging.** Run the integration tests once. Read the 5 Pidgin outputs by hand. Adjust the prompt if any sound off.
+In rough order of leverage:
 
-2. **Generate 50 questions on JAMB Mathematics → Algebra topic via the admin UI.** Review them in the moderation queue. The cheapest end-to-end test of the AI generation pipeline AND gives us the first real signal on quality.
+1. **Run the Pidgin verification suite on DeepSeek too.** If it scores ≥ 4/5 on the same rubric, the full-DeepSeek migration becomes viable and saves another ~$140k/month at 100k DAU. Even if it fails, knowing how it fails informs whether a Pidgin-tuned DeepSeek prompt could close the gap. Cost: ~$0.005 to run.
 
-3. **Wire the explain-differently button into the results page.** The API endpoint exists but no UI surfaces it. Adding an "Explain differently" dropdown next to each wrong-answer breakdown is ~30 lines of frontend.
+2. **Next.js 14 → 15 migration.** Hard gate before any open-signup launch. Sprint 5 didn't move on it. The Cloudflare + per-route rate limits are still the mitigation but they don't substitute for the patch.
 
-4. **Wire the tutor chat into a /tutor page or modal.** Same — endpoint exists, UI doesn't. The streaming text endpoint just needs a chat-bubble UI component reading the ReadableStream with `response.body.getReader()`.
+3. **Prompt caching on Anthropic system prompts.** Tutor + Pidgin prompts are static. 90% discount on cached system tokens. Once tutor volume crosses ~50k calls/day this is worth a focused half-day session.
 
-5. **Decide on the question-content commission.** Sprints 1, 2, and 3 have all flagged this as the gating risk; Sprint 3 ADDS the AI generation pipeline as a partial mitigation, but human SME review is still the bottleneck. Until you decide who's reviewing and at what rate, content is the slowest-moving variable.
+4. **A/B free-tier tutor on DeepSeek.** With the abstraction in place, this is a constants.ts change + thumbs-ratio comparison. Largest single line item in basic-tier worst-case spend.
 
 I'll be here when you're back.

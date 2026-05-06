@@ -1,49 +1,22 @@
 /**
- * Anthropic client wrapper.
+ * AI telemetry helpers.
  *
- * Lazy-initialized — `getAnthropic()` returns null when ANTHROPIC_API_KEY
- * is unset (local dev, CI without secrets) so callers can degrade
- * gracefully instead of crashing on module load.
+ * The Anthropic-specific client wrapper that lived here previously moved
+ * to lib/ai/providers/. Call sites now import { getProvider, runWithFallback,
+ * AI_MODELS } from '@/lib/ai' (or the providers/constants modules directly).
  *
- * Model selection by feature is intentional and visible at call site —
- * NOT abstracted into a "default model" because Sonnet vs Haiku is a
- * cost/quality tradeoff that should be explicit per call:
- *
- *   - tutor chat (streaming, multi-turn, deeper reasoning)  → Sonnet 4.6
- *   - explain-differently (short, fast, single-shot)         → Haiku 4.5
- *   - study-plan generation (structured JSON, long context)  → Sonnet 4.6
- *   - admin question generation (10 at once, accuracy-bound) → Sonnet 4.6
- *
- * Haiku 4.5 is ~3x cheaper than Sonnet 4.6 — using it for explain-
- * differently keeps that feature affordable for free-tier users.
+ * What stays here: the cross-provider telemetry sink (`logAiCall`) and
+ * the daily-cap counter (`countAiCallsToday`). These don't care which
+ * provider answered the call — the row records `provider` + `model` +
+ * `wasFallback` so admin dashboards can break it down.
  */
-import Anthropic from '@anthropic-ai/sdk';
 import { aiUsageLog } from '@examready/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
-
 
 import { db } from '../db';
 import { redactPii } from '../observability/pii';
 
-export const AI_MODELS = {
-  tutorChat: 'claude-sonnet-4-6',
-  explainDifferently: 'claude-haiku-4-5-20251001',
-  studyPlan: 'claude-sonnet-4-6',
-  generateQuestions: 'claude-sonnet-4-6',
-} as const;
-
-let cached: Anthropic | null | undefined;
-
-export function getAnthropic(): Anthropic | null {
-  if (cached !== undefined) return cached;
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) {
-    cached = null;
-    return null;
-  }
-  cached = new Anthropic({ apiKey: key });
-  return cached;
-}
+import type { ProviderName } from './providers';
 
 export class AiUnavailableError extends Error {
   readonly code = 'AI_UNAVAILABLE';
@@ -54,26 +27,57 @@ export class AiUnavailableError extends Error {
 
 /**
  * Single point of telemetry for AI calls. Writes one row to ai_usage_log
- * per completed call. NEVER stores the prompt or completion body — only
- * counts + duration + success/error.
+ * per completed call. NEVER stores the prompt or user input.
+ *
+ * Output sample storage is OPT-IN via AI_LOG_SAMPLES=true. When enabled,
+ * we store up to 4000 chars of the model's output text — PII-redacted
+ * via redactPii — so /admin/ai-quality-review can spot-check Pidgin
+ * register, register drift, etc. The flag is intentionally a runtime
+ * env var and not a schema default: turning sampling on/off shouldn't
+ * require a migration, AND the operator must affirmatively flip it
+ * (visible in deployment config) to enable.
  */
+export const AI_LOG_SAMPLES_ENABLED = (): boolean => process.env.AI_LOG_SAMPLES === 'true';
+
+const MAX_SAMPLE_CHARS = 4000;
+
 export async function logAiCall(args: {
   userId: string;
   feature: string;
+  provider: ProviderName;
   model: string;
   inputTokens: number;
   outputTokens: number;
   durationMs: number;
   succeeded: boolean;
+  /** True when the primary provider failed and the fallback handled the call. */
+  wasFallback?: boolean;
   errorCode?: string;
-}): Promise<void> {
+  /** Model output. Stored only when AI_LOG_SAMPLES=true; redacted before insert. */
+  outputText?: string;
+}): Promise<string | null> {
+  const { outputText, wasFallback, ...rest } = args;
+  let outputSample: string | null = null;
+  if (AI_LOG_SAMPLES_ENABLED() && outputText) {
+    // Two layers: redact PII patterns in the text, then truncate. Order
+    // matters — redact BEFORE truncating so we don't accidentally cut a
+    // PII string in half and leave the prefix readable.
+    const redacted = redactPii(outputText);
+    outputSample = redacted.slice(0, MAX_SAMPLE_CHARS);
+  }
+
   try {
-    await db.insert(aiUsageLog).values(args);
+    const inserted = await db
+      .insert(aiUsageLog)
+      .values({ ...rest, wasFallback: wasFallback ?? false, outputSample })
+      .returning({ id: aiUsageLog.id });
+    return inserted[0]?.id ?? null;
   } catch (err) {
     // Telemetry failure should never break the user-facing call. Log
     // through the existing PII-safe error path instead.
     // eslint-disable-next-line no-console
-    console.error('[ai] usage log write failed:', redactPii({ err: String(err), args }));
+    console.error('[ai] usage log write failed:', redactPii({ err: String(err), args: rest }));
+    return null;
   }
 }
 

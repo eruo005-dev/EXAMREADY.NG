@@ -1,9 +1,15 @@
 /**
  * POST /api/ai/study-plan
  *
- * Generates a personalised week-by-week study plan via Claude with
- * structured output (tool_use). Saves the plan to study_plans, marks
- * any prior plan for the same (user, exam) as is_current=false.
+ * Generates a personalised week-by-week study plan via the provider
+ * abstraction with structured output (tool_use ↔ function calling).
+ * Saves the plan to study_plans, marks any prior plan for the same
+ * (user, exam) as is_current=false.
+ *
+ * Provider routing (Sprint 5): DeepSeek primary, Claude Haiku fallback.
+ * Both providers run the same JSON schema — Anthropic via tool_use,
+ * DeepSeek via OpenAI-style function calling. The provider adapter
+ * normalises the output so caller-side Zod validation stays identical.
  *
  * Quotas: free 1/day, basic 5/day, pro unlimited. Throughput 2/min.
  *
@@ -22,13 +28,15 @@ import {
 import { studyPlanInputSchema } from '@examready/shared';
 import { and, desc, eq, isNotNull, sql } from 'drizzle-orm';
 
-import { AI_MODELS, getAnthropic, logAiCall } from '@/lib/ai/client';
+import { logAiCall } from '@/lib/ai/client';
+import { AI_MODELS } from '@/lib/ai/constants';
 import {
   buildStudyPlanUserMessage,
   studyPlanSchema,
   STUDY_PLAN_SYSTEM_PROMPT,
   STUDY_PLAN_TOOL,
 } from '@/lib/ai/prompts/study-plan';
+import { getProvider, ProviderError, runWithFallback } from '@/lib/ai/providers';
 import { checkAiQuota } from '@/lib/ai/quota';
 import {
   ApiError,
@@ -48,8 +56,11 @@ export const POST = defineRoute({
 })(async ({ parsed, user }) => {
   if (!user) throw new Error('user required');
 
-  const anthropic = getAnthropic();
-  if (!anthropic) {
+  const routing = AI_MODELS.studyPlan;
+  const primaryConfigured = getProvider(routing.primary.provider).isConfigured();
+  const fallbackConfigured =
+    routing.fallback !== null && getProvider(routing.fallback.provider).isConfigured();
+  if (!primaryConfigured && !fallbackConfigured) {
     throw new ApiError('BAD_GATEWAY', 'AI features are not configured on this deployment.', 503);
   }
 
@@ -77,8 +88,6 @@ export const POST = defineRoute({
     .limit(1);
   if (!exam) throw new NotFoundError('Exam not found');
 
-  // Compute weak topics: same query shape as the dashboard heatmap, capped
-  // at the worst 8 topics (more than that and the prompt becomes unwieldy).
   type WeakRow = { slug: string; name: string; accuracyPercent: number };
   const weakTopicRows: WeakRow[] = (
     await db
@@ -106,7 +115,7 @@ export const POST = defineRoute({
       )
       .limit(8)
   )
-    .filter((r) => r.total >= 3) // need at least 3 attempts to call something "weak"
+    .filter((r) => r.total >= 3)
     .map<WeakRow>((r) => ({
       slug: r.topicSlug,
       name: r.topicName,
@@ -126,27 +135,28 @@ export const POST = defineRoute({
   let outputTokens = 0;
   let succeeded = false;
   let errorCode: string | undefined;
+  let usedProvider = routing.primary.provider;
+  let usedModel = routing.primary.model;
+  let wasFallback = false;
 
   try {
-    const completion = await anthropic.messages.create({
-      model: AI_MODELS.studyPlan,
-      max_tokens: 8192,
-      system: STUDY_PLAN_SYSTEM_PROMPT,
-      tools: [STUDY_PLAN_TOOL],
-      tool_choice: { type: 'tool', name: 'output_study_plan' },
-      messages: [{ role: 'user', content: userMessage }],
-    });
+    const outcome = await runWithFallback(routing.primary, routing.fallback, (provider, model) =>
+      provider.toolUse({
+        model,
+        maxTokens: 8192,
+        systemPrompt: STUDY_PLAN_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMessage }],
+        tool: STUDY_PLAN_TOOL,
+      }),
+    );
 
-    inputTokens = completion.usage?.input_tokens ?? 0;
-    outputTokens = completion.usage?.output_tokens ?? 0;
+    inputTokens = outcome.result.inputTokens;
+    outputTokens = outcome.result.outputTokens;
+    usedProvider = outcome.provider;
+    usedModel = outcome.model;
+    wasFallback = outcome.wasFallback;
 
-    // Find the tool_use block. tool_choice forces it but defensive coding.
-    const toolUseBlock = completion.content.find((b) => b.type === 'tool_use');
-    if (!toolUseBlock || toolUseBlock.type !== 'tool_use') {
-      throw new ApiError('BAD_GATEWAY', 'AI did not return a structured plan.', 502);
-    }
-
-    const validated = studyPlanSchema.safeParse(toolUseBlock.input);
+    const validated = studyPlanSchema.safeParse(outcome.result.input);
     if (!validated.success) {
       // eslint-disable-next-line no-console
       console.error('[ai/study-plan] schema validation failed:', validated.error.flatten());
@@ -179,8 +189,11 @@ export const POST = defineRoute({
             examName: exam.name,
             weakTopicSummary: weakTopicRows,
             requestedAt: new Date().toISOString(),
+            provider: usedProvider,
+            model: usedModel,
+            wasFallback,
           },
-          generatedByModel: AI_MODELS.studyPlan,
+          generatedByModel: usedModel,
           isCurrent: true,
         })
         .returning();
@@ -195,17 +208,24 @@ export const POST = defineRoute({
       studyPlanId: saved.id,
       plan: validated.data,
       remainingToday:
-        quota.remainingToday === Number.MAX_SAFE_INTEGER ? null : Math.max(0, quota.remainingToday - 1),
+        quota.remainingToday === Number.MAX_SAFE_INTEGER
+          ? null
+          : Math.max(0, quota.remainingToday - 1),
     });
   } catch (err) {
     errorCode = err instanceof ApiError ? err.code : 'AI_ERROR';
+    if (err instanceof ProviderError) {
+      usedProvider = err.provider;
+    }
     if (err instanceof ApiError) throw err;
     throw new ApiError('BAD_GATEWAY', 'AI service error. Try again.', 502);
   } finally {
     await logAiCall({
       userId: user.profile.id,
       feature: 'study_plan',
-      model: AI_MODELS.studyPlan,
+      provider: usedProvider,
+      model: usedModel,
+      wasFallback,
       inputTokens,
       outputTokens,
       durationMs: Date.now() - start,

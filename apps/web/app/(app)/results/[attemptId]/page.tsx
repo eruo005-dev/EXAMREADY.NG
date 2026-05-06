@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
 
 import { AdSlot } from '@/components/ads/AdSlot';
+import { ExplanationCard } from '@/components/ai/ExplanationCard';
 
 type Result = {
   attemptId: string;
@@ -52,7 +53,12 @@ export default function ResultsPage() {
   }
 
   if (error || !data) {
-    return <EmptyState title="Couldn't load results" description="Refresh the page or check your connection." />;
+    return (
+      <EmptyState
+        title="Couldn't load results"
+        description="Refresh the page or check your connection."
+      />
+    );
   }
 
   const minutes = Math.floor(data.timeSpentSeconds / 60);
@@ -62,7 +68,7 @@ export default function ResultsPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <Card>
         <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground">Attempt complete</p>
+          <p className="text-muted-foreground text-sm">Attempt complete</p>
           <h1 className="mt-1 text-3xl font-bold">
             {data.correctCount}/{data.totalQuestions}
           </h1>
@@ -83,22 +89,25 @@ export default function ResultsPage() {
 
       <div className="space-y-3">
         {data.breakdown.map((b, idx) => (
-          <Card key={b.questionId} className={b.isCorrect ? 'border-success/40' : 'border-destructive/40'}>
-            <CardContent className="space-y-3 pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  {b.isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-success" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-destructive" />
-                  )}
-                  <span className="font-medium">Question {idx + 1}</span>
-                </div>
-                <Badge variant="outline">{b.topicName}</Badge>
+          <ExplanationCard
+            key={b.questionId}
+            questionId={b.questionId}
+            originalExplanation={b.explanation}
+            className={b.isCorrect ? 'border-success/40' : 'border-destructive/40'}
+            header={
+              <div className="flex flex-1 items-center gap-2">
+                {b.isCorrect ? (
+                  <CheckCircle2 className="text-success h-5 w-5" />
+                ) : (
+                  <XCircle className="text-destructive h-5 w-5" />
+                )}
+                <span className="font-medium">Question {idx + 1}</span>
+                <Badge variant="outline" className="ml-2">
+                  {b.topicName}
+                </Badge>
               </div>
-              <p className="font-serif text-reading-base text-muted-foreground">{b.explanation}</p>
-            </CardContent>
-          </Card>
+            }
+          />
         ))}
       </div>
     </div>

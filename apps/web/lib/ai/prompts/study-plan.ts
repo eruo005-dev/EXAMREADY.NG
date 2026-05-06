@@ -50,9 +50,19 @@ export type StudyPlan = z.infer<typeof studyPlanSchema>;
 
 export const STUDY_PLAN_SYSTEM_PROMPT = `
 You are creating a personalised exam-prep study plan for a Nigerian
-student. Output ONLY valid JSON matching the provided tool schema.
+student. Output ONLY by calling the output_study_plan tool with all
+required fields populated. Do NOT emit any text outside the tool call.
 
-Constraints:
+Required fields (populate all of them):
+- summary (2-3 sentence motivating overview, confident Nigerian voice)
+- totalWeeks (integer, 1-52)
+- hoursPerWeek (integer, matches the student's input)
+- weeks (array of week objects, each with weekNumber, startDate,
+  endDate, focus, days)
+- Each week has exactly 7 day objects (mon..sun). Empty rest days are
+  fine but the day MUST be present in the array.
+
+Plan-shape constraints:
 - Exam date is fixed; total weeks = ceil((examDate - today) / 7).
   If exam is < 1 week away, output a single intensive week with daily
   activities. If exam is > 12 weeks away, generate up to 12 weeks and
@@ -70,8 +80,6 @@ Constraints:
 - 'note' on activities should be concrete and actionable
   ("Focus on quadratic equations, target 75% accuracy" — NOT
   "Practice and review your topics").
-- 'summary' is a 2-3 sentence motivating overview the student reads
-  first. Confident Nigerian voice, no fluff.
 
 Things you must NOT do:
 - Invent topic slugs. Only use slugs the user provided as weak topics
@@ -79,17 +87,21 @@ Things you must NOT do:
 - Promise a score or guarantee passing. Plans help; nothing guarantees.
 - Recommend more hours than the student gave you.
 - Output anything outside the JSON tool call.
+- Skip the days array on any week. All 7 days must be present.
 `.trim();
 
 /**
- * The tool definition we send to Anthropic. The shape mirrors
- * studyPlanSchema so the model output is parseable + Zod-validated
- * with the SAME source of truth.
+ * The tool definition handed to whichever provider satisfies the call.
+ * `schema` is plain JSON Schema — Anthropic adapts it to `input_schema`,
+ * DeepSeek (via OpenAI function calling) adapts it to `parameters`.
+ *
+ * Same source of truth feeds the Zod validator above so the model
+ * output matches whatever shape we trust at the persistence layer.
  */
 export const STUDY_PLAN_TOOL = {
   name: 'output_study_plan',
   description: "Output the student's personalised study plan.",
-  input_schema: {
+  schema: {
     type: 'object',
     properties: {
       summary: { type: 'string' },
@@ -111,13 +123,19 @@ export const STUDY_PLAN_TOOL = {
               items: {
                 type: 'object',
                 properties: {
-                  dayOfWeek: { type: 'string', enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] },
+                  dayOfWeek: {
+                    type: 'string',
+                    enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+                  },
                   activities: {
                     type: 'array',
                     items: {
                       type: 'object',
                       properties: {
-                        type: { type: 'string', enum: ['practice', 'revision', 'mock_cbt', 'rest', 'reading'] },
+                        type: {
+                          type: 'string',
+                          enum: ['practice', 'revision', 'mock_cbt', 'rest', 'reading'],
+                        },
                         topicSlug: { type: 'string' },
                         questionCount: { type: 'integer', minimum: 1 },
                         estimatedMinutes: { type: 'integer', minimum: 1 },

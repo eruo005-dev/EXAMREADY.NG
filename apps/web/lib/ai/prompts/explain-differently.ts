@@ -29,10 +29,12 @@ Rules:
 - Do not introduce facts or steps the original explanation doesn't have.
 - Keep technical terms in English (e.g. "quadratic equation", "indices",
   "Pythagoras' theorem") — students need those terms for the exam paper.
-- Aim for 2–4 short paragraphs maximum. Brevity matters.
-- Never start with "Sure!", "Of course!", or any sycophantic opener.
-- Output PLAIN TEXT only. No markdown headers, no asterisks, no bullet points.
-  The frontend will render with line breaks.
+- LENGTH: 4–6 sentences total, organised into 2 short paragraphs at most.
+  No preamble, no closing recap. Brevity is a hard constraint, not a hint.
+- Never start with "Sure!", "Of course!", "Lemme explain", or any
+  sycophantic / filler opener. Start with the actual explanation.
+- Output PLAIN TEXT only. No markdown headers, no asterisks, no bullet
+  points, no horizontal rules. The frontend renders with line breaks only.
 `.trim();
 
 const SIMPLER_SYSTEM = `${SHARED_CONSTRAINTS}
@@ -109,9 +111,7 @@ export function buildExplainUserMessage(input: ExplainPromptInput): string {
     .map((o) => `${o.label}. ${o.content}${o.isCorrect ? '   [CORRECT]' : ''}`)
     .join('\n');
 
-  const passageBlock = input.passage
-    ? `PASSAGE:\n${input.passage}\n\n`
-    : '';
+  const passageBlock = input.passage ? `PASSAGE:\n${input.passage}\n\n` : '';
 
   return `${passageBlock}QUESTION:
 ${input.questionStem}

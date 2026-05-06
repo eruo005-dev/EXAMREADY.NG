@@ -43,6 +43,20 @@
       "when": 1778076661223,
       "tag": "0005_cheerful_cardiac",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778078928163,
+      "tag": "0006_worthless_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778080770927,
+      "tag": "0007_petite_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }
