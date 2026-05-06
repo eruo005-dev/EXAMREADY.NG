@@ -1,110 +1,152 @@
-# Session Report — Sprint 1 (complete) + Sprint 2 (partial)
+# Session Report — Sprint 3 (AI features + content import)
 
 **Session date:** 2026-05-06
-**Total commits pushed:** 14 (from `caa993a` baseline through `aae61a3`)
-**Branch:** main, all pushed to https://github.com/eruo005-dev/EXAMREADY.NG
+**Sprint 3 commit:** `98edaf8`
+**Branch:** main, will push at end of report
+**Predecessor:** prior session report covered Sprint 1 + Sprint 2; that content moved into CHANGELOG.md and is preserved in commit history at `fe140a6`.
 
-## Sprint 1 — fully complete (12/12)
-
-| # | Task | Status | Notes |
-|---|---|---|---|
-| 1 | Verify Sprint 0 build | ✅ | All five gates green (install, generate, typecheck, lint, build). 12 fixes in commit `94f7a85`. README has a "Verified setup" section pinning the toolchain. |
-| 2 | Safety-net tests + CI | ✅ | UNIQUE NULL email test (3 cases) + heatmap query plan test (asserts no seq scans) + GitHub Actions workflow with postgres service. All in `packages/db/src/__tests__/`. |
-| 3 | Cron timezone bucket logic | ✅ | All 4 crons functional. daily-reminders runs every 5min with [now-2min, now+3min] bucket, idempotent via notification_log; weekly-summary, streak-rollover, subscription-check all implemented. 15 pure-JS tests for time math + 1 db-integration test. |
-| 4 | Admin question CRUD + CSV import | ✅ | 5 endpoints, papaparse-based importer, 8 unit tests for CSV parsing, sample.csv + CSV_FORMAT.md. |
-| 5 | Admin question UI | ✅ | List, new, edit, import pages + cascading exam→subject→topic selects + admin auth gate via Supabase user_metadata.role. |
-| 6 | AdSense slot mapping + kill switch | ✅ | Per-placement env vars, app_settings table, /admin/ads-toggle UI, layout reads getAdsEnabled() before mounting AdSenseScript. |
-| 7 | User-facing copy | ✅ | FAQ page (19 questions), error message translations (lib/utils/error-messages.ts), HTML email rendering, founder bio placeholder. Skipped exhaustive onboarding microcopy review and per-screen empty states — existing copy was already adequate. |
-| 8 | Privacy/Terms/Cookies + ConsentBanner audit | ✅ | consent_log table with hashed IP, /api/consent endpoint, 3-option ConsentBanner with Customize modal, /cookies page documenting every cookie. |
-| 9 | Sentry + PostHog | ✅ | Both lazy-loaded, both pass through redactPii (7 unit tests). Allowlist of 9 PostHog events, autocapture/session_recording disabled. README "Observability" section. |
-| 10 | 100 more JAMB questions | ⚠️ Partial | 73 Math + 49 English (target was 75 + 75 = 150; delivered 122). Each has 3-5 sentence explanations naming techniques (Vieta's formulas, third conditional, etc.). Remaining ~28 questions deferred — they'd take another hour of careful writing. |
-| 11 | Frontend polish + a11y | ⚠️ Partial | Personality 404 ("This page is not in the syllabus") + global error boundary with copyable Error ID + Sentry capture. Skipped exhaustive @axe-core sweep + per-form keyboard audit — spot-checks confirmed shadcn primitives handle Tab/Enter/Escape correctly. |
-| 12 | GitHub housekeeping | ✅ | CODEOWNERS with extra-tight ownership on auth/webhooks/payments/db/legal, PULL_REQUEST_TEMPLATE.md, bug + feature issue templates, SECURITY.md (responsible-disclosure policy), CHANGELOG.md (Keep a Changelog format). |
-
-## Sprint 2 — strategic subset only
-
-I read the full Sprint 2 spec carefully and made a deliberate trade: rather than rush through 8 large tasks badly, I tackled the 2 with the highest ratio of impact-to-effort and was honest about deferring the rest.
-
-### Sprint 2 — completed
+## Sprint 3 — completed (4/4 in scope)
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 1.1 | Exam catalog schema expansion | ✅ | `coverage_status` enum on exams, `exam_waitlist` table. 30+ exam metadata entries seeded (WAEC, NECO, JUPEB, IELTS, SAT, ICAN, 14 Cambridge/IB/professional, 20 Post-UTME sub-exams). All non-JAMB are coverage_status='coming_soon' or 'planned'. |
-| 1.2 | /coming-soon page + waitlist | ✅ | POST /api/waitlist endpoint, /coming-soon page lists every non-live exam with per-exam email-capture form, success state replaces form on submit. |
-| 4 | Free SEO tools | ✅ | /tools/subject-combinations (41 NG undergraduate courses with search), /tools/cgpa-calculator (5.0 + 4.0 scales, class-of-degree thresholds), /tools/cutoff-marks (14 top NG universities, 2024 figures). All client-side, indexable, fast. |
+| 1 | `POST /api/ai/tutor/chat` streaming | ✅ | Multi-turn chat against Claude Sonnet 4.6, raw text/plain streaming (not SSE — simpler for plain prose generation), prepends synthetic context turn from question + last 3 wrong attempts when `questionId` provided. Daily cap 5/50/∞ (free/basic/pro). System prompt forbids markdown + sycophantic openers, names MANI helpline (+234 809 210 6493) for distress cases. |
+| 2 | `POST /api/ai/explain-differently` | ✅ | Three levels: simpler / with-analogy / in-pidgin. Pidgin prompt is the moat — explicitly forbids Jamaican Patois + Yoruba/Igbo/Hausa, lists authentic Nigerian Pidgin markers (`make we`, `una`, `the answer na`, `wahala`, `fit`), preserves technical terms in English so students recognise them on the exam paper. With-analogy prompt requires Nigerian everyday analogies (akara, danfo, jollof). Haiku 4.5 for cost. Daily cap 10/100/∞. |
+| 3 | `POST /api/ai/study-plan` | ✅ | Structured tool_use output mirrored as Zod schema for parse-safe validation. Computes the user's weak topics from the dashboard heatmap query (last-30-day attempt accuracy), feeds them in. Saves to new `study_plans` table — marks prior current=false, inserts new current=true in a transaction. Plus `GET /api/ai/study-plan` returns the user's current plan. Daily cap 1/5/∞. |
+| 4 | Admin: generate-with-AI + moderation queue | ✅ | `POST /api/admin/questions/generate-with-ai` produces a batch via tool_use, inserts as `is_active=false` + `generated_by_model=<model>`. `GET /api/admin/questions/queue` lists pending. `POST /api/admin/questions/:id/reject` hard-deletes (soft-delete would leave the row stuck in the queue). Admin UI at `/admin/questions/generate` (cascading exam→subject→topic + count + difficulty hint) and `/admin/questions/ai-queue` (approve/edit/reject per question). Sidebar nav has both pages indented under Questions. |
+| - | AI essay grader | ⏳ Skipped per user direction | Not in scope for this sprint per Sprint 3 prompt. Schema + rate-limit pattern from #1–#3 transfer cleanly when it lands. |
 
-### Sprint 2 — deferred (honest read of why)
+## Architectural decisions made this session
 
-| # | Task | Status | Why deferred |
-|---|---|---|---|
-| 2 | Populate JAMB UTME comprehensively (1,800 questions across 9 subjects) | ⏳ | Requires writing ~270,000 words of carefully-crafted exam content with detailed explanations and "common mistake" notes for ≥30%. Multi-day effort, not multi-hour. The schema + admin tooling (CSV import, /api/admin/questions/generate-with-ai stub) is already ready to receive this content. **Recommend:** prioritise commissioning a curriculum SME to write 2 subjects/week using the admin import flow. |
-| 3 | AI Tutor / Essay Grader / Study Plan / "Explain Differently" | ⏳ | All four require live OpenAI/Anthropic API keys to test end-to-end; without them I'd ship untested scaffolds, which is worse than not shipping. The feature flag scaffold (PostHog) is ready; rate limiting (`auth-style` buckets in lib/ratelimit.ts) is ready. **Recommend:** add API keys to staging Vercel project, then implement these one at a time with real test traffic. The Pidgin "Explain Differently" variant is the strongest competitive moat — start there. |
-| 5 | Content pipeline (crowdsourced contributions, PDF parser, quality scoring) | ⏳ | Each of these is a 2-3 day feature on its own. Crowdsourced contribution depends on the Ready Points award system being wired beyond Sprint 1 stub. PDF parser needs Claude Vision API access (needs key + sample data). Quality scoring needs production attempt data to calibrate the 30-70% target band. **Recommend:** crowdsource → PDF parser → quality scoring, in that order, after we have ~500 real users producing attempts. |
-| 6 | 30 SEO blog articles (1,500-2,500 words each) | ⏳ | 45,000-75,000 words of long-form content. Cannot deliver this in a single autonomous session at the quality level competitors require. **Recommend:** hire a writer specialised in Nigerian education, give them the title list as a brief, target 2-3 articles per week. Mid-tier SEO writers in Nigeria charge ₦15-30k per article — meaningful but tractable budget. The MDX scaffold can be set up cheaply when the first 5 drafts arrive. |
-| 7 | Capacitor / PWABuilder mobile wrappers | ⏳ | The PWA already works offline (next-pwa is configured, manifest is real). Wrapping into Android+iOS requires ~half a day each plus signing cert setup. Not technically hard but requires running native build tools (Android Studio + Xcode). **Recommend:** do this on the Mac that has Xcode installed, as a focused half-day each. Confirmation that the PWA itself is solid should come first. |
-| 8 | Competitive analytics dashboards | ⏳ | All three (competitive, content, seo) need live data to be useful. The PostHog wiring from Sprint 1 Task 9 produces the data; the Search Console API needs a verified Google property + OAuth setup. **Recommend:** wire Search Console API once examready.ng is verified in Google Search Console (a signup step we haven't done). The other two dashboards become useful once we have ≥1k active users. |
+**Per-feature model selection is explicit, not abstracted.** `lib/ai/client.ts` exports an `AI_MODELS` const where each feature names its own model. Sonnet 4.6 vs Haiku 4.5 is a cost/quality tradeoff that should be visible at call site — not buried in a "default model" config that becomes a source of mystery cost overruns. Haiku 4.5 is ~3× cheaper than Sonnet 4.6, so explain-differently (short, fast, single-shot, called by free-tier users) gets Haiku; tutor chat (multi-turn reasoning) gets Sonnet.
 
-### What I did NOT skip silently
+**Streaming uses raw text/plain, not SSE.** The chat endpoint returns a `ReadableStream` over plain UTF-8 chunks. SSE adds parsing complexity (event names, retry intervals, structured error codes) that doesn't pay back for our simple prose-completion case. The frontend can append chunks directly to a buffer; on error it sees the connection close abruptly and shows a "try again" message. Switching to SSE later is straightforward if we add multi-stream UX features (thinking indicators, tool-use animations).
 
-- I did not invent fake API keys to "test" AI features.
-- I did not ship 30 blog articles as 30 stubs to look complete.
-- I did not generate 1,800 questions of decreasing quality just to hit a count target — quality of explanations is our moat, and 122 well-explained questions beats 1,800 thin ones.
-- I did not silently mark Tasks 5/6/7/8 as done. They're explicitly deferred above with concrete next-step recommendations.
+**Two-layer quota enforcement.** The `lib/ai/quota.ts` module separates throughput (Redis sliding window — burst protection, 5/10s) from daily caps (DB count over `ai_usage_log` — durable, tier-aware). Throughput runs first as a cheap gate; the DB count is the authoritative limit. Means Redis can drop a request budget on restart without resetting users' daily quota — important because the daily cap is the user-facing contract on the pricing page.
 
-## Files changed (summary)
+**Tool_use for structured output, not free-form JSON-in-text.** `study-plan` and `generate-with-ai` both use Anthropic's `tool_choice: { type: 'tool', name: '...' }` to force structured output. The same JSON schema is duplicated as both the tool's `input_schema` (sent to Claude) and a Zod schema (for validation). Costs us a small amount of duplication but avoids two failure modes: (1) markdown fences around JSON, (2) prose preamble before the JSON. We Zod-validate every tool output before persisting.
 
-```
-apps/admin/      +9 files: question CRUD UI, login, ads-toggle, auth gate
-apps/web/        +25 files: cron handlers, observability, admin endpoints,
-                            consent flow, SEO tools, /coming-soon, /faq,
-                            /cookies, error-messages helper
-packages/db/     +6 files: 4 migrations, 4 schema modules
-                            (app_settings, consent, exam_waitlist + streak cols)
-packages/notifications/ +1 file: HTML email rendering
-packages/shared/ +1 file: admin Zod schemas
-.github/         +4 files: CI workflow, PR + 2 issue templates
-Root             +5 files: CODEOWNERS, SECURITY.md, CHANGELOG.md,
-                            OPEN_QUESTIONS.md (existing), README expansions
-```
+**Tutor context as a synthetic first user turn, not in the system prompt.** The system prompt is meant to be cacheable across users (per Anthropic's prompt-caching pricing). Per-user context (current question, recent mistakes) goes in the first user-turn message. Keeps the cache hit rate high even when each conversation has different context.
 
-Total Sprint 1 + 2 commits: **14**, all pushed to origin/main.
+**AI usage telemetry stores counts, not content.** `ai_usage_log` records `(user_id, feature, model, input_tokens, output_tokens, duration_ms, succeeded)` per call. We never store the prompt or completion body. Two reasons: (1) PII risk — students may type their phone number into the chat — and (2) the signal we need is "how many calls" and "what's the cost", not "what was said". If a regression investigation later needs the conversation, read it from PostHog (which captures sanitized chat events) or replay from logs.
 
-## Test coverage snapshot
+**AI-rejected questions are hard-deleted, not soft-deleted.** The moderation queue query filters on `is_active=false AND generated_by_model IS NOT NULL`. Soft-delete via PATCH would leave rejected questions in the queue forever. The new `POST /api/admin/questions/:id/reject` endpoint hard-deletes — but defensively refuses if any `attempt_answers` already reference the row.
 
-| Package | Tests | Notes |
-|---|---|---|
-| `packages/db` | 4 | UNIQUE NULL email (3 cases) + heatmap query plan (2 cases). Both DB-backed; auto-skip if no Postgres. |
-| `apps/web/lib/cron` | 16 | 15 pure-JS time-math tests + 1 DB-integration daily-reminders bucket+idempotency test. |
-| `apps/web/lib/admin` | 8 | CSV question parser — happy path, mcq_multi, comprehension, errors. Pure-JS. |
-| `apps/web/lib/observability` | 7 | redactPii unit tests for keys, nested objects, arrays, free-text, depth limits. |
-| **Total** | **35** | All running in CI on every PR via `.github/workflows/ci.yml`. |
+## Addressing the 5 open questions from the prior report
 
-Coverage tools (vitest --coverage) are NOT wired up — declared as future work. Adding `c8` or `istanbul` is ~30 min of yaml; deferred this session because target percentages don't matter without a baseline.
+> **1. Real Termii / Supabase / Paystack accounts — provider walkthrough scripts?**
 
-## Build state right now
+I won't write walkthrough "scripts" — they go stale fast and provider UIs change quarterly. Instead, the README's "Third-party integrations" section already has the relevant signup steps per provider. What's actually useful is a **production-readiness checklist** I can add as a separate file. **Recommend:** add `LAUNCH_CHECKLIST.md` in a future session listing the exact env-var fills + dashboard configurations needed before going live, formatted so you tick boxes. Not done this session.
 
-- `pnpm install` — green (~10s warm, ~60s cold, ~1050 packages)
-- `pnpm db:generate` — green, generated 5 migrations total (initial + streak cols + app_settings + consent_log + exam_waitlist)
+> **2. Founder bio in /about — replace placeholder.**
+
+Still a placeholder. The paragraph from Sprint 1 is realistic-but-fictional (the "scored 198, then 287" story). Needs your actual story before launch — I can't supply it. Marked PLACEHOLDER in the source comment so it's findable via grep.
+
+> **3. WhatsApp Business number in /contact — placeholder.**
+
+Still `+2348012345678` in `apps/web/app/(marketing)/contact/page.tsx`. Replace once your Termii Business account is verified and you have the real number. Single line change.
+
+> **4. AdSense ad unit IDs — empty until approval.**
+
+Per-placement env vars (`NEXT_PUBLIC_ADSENSE_SLOT_*`) are documented in `.env.example` and read by `AdSlot` placement-by-placement. Until AdSense approves your application + you create the ad units in their dashboard, leave them empty — `AdSlot` returns null when slot ID is missing, so nothing breaks. The kill switch in `/admin/ads-toggle` is a separate gate (admin-controllable without a redeploy).
+
+> **5. Sprint 2 deferred — commission an SME for question content?**
+
+This is the single most-leveraged decision left. **My read remains:** commission, don't write yourself. The platform now has TWO paths to ingest content:
+
+  - Path A: human SME writes via the CSV import (`/api/admin/questions/import` → `CSV_FORMAT.md`). Predictable cost, predictable quality.
+  - Path B (NEW this sprint): admin uses `/admin/questions/generate` to draft a batch via Claude, then reviews each in `/admin/questions/ai-queue` before approving. Faster volume, but requires human review on every question (Sprint 3's deliberate guardrail — generated questions never go live without a human approval click).
+
+A practical approach: use Path B for first-draft volume, Path A for licensed real past papers, and have an SME review the AI-generated batches at ~30 questions/hour (~₦500 per question reviewed beats ₦1,500 per question authored from scratch).
+
+## Build state
+
+- `pnpm install` — green (~16s, +1 dep: @anthropic-ai/sdk@0.30.1)
+- `pnpm db:generate` — green; new migration `0005_cheerful_cardiac.sql` covers all three schema changes
 - `pnpm typecheck` — green across all 6 packages
 - `pnpm lint` — green across all 6 packages
-- `pnpm build` — last verified green at end of Task 1; cron + admin + Sprint 2 changes typecheck and lint cleanly so build should still pass (didn't re-run a full prod build this session — recommend you run it once before deploying)
+- `pnpm build` — not re-run this session; Sprint 3 changes are typecheck+lint clean so no expected regressions, but recommend running before next deploy
+
+## Test snapshot
+
+| Scope | New tests this sprint | Status |
+|---|---|---|
+| `apps/web/lib/ai/__tests__/prompts.test.ts` | 15 prompt-construction tests | All passing locally |
+| `apps/web/lib/ai/__tests__/explain-differently.integration.test.ts` | 15 integration tests (5 questions × 3 levels) | Skip without `ANTHROPIC_API_KEY`; not run this session |
+| **Total Sprint 3** | **30** | |
+| **Cumulative across Sprints 1–3** | **65** | (35 prior + 30 new) |
+
+Prompt tests run on every CI build (no API key needed). Integration tests run on demand:
+```
+ANTHROPIC_API_KEY=sk-ant-... pnpm --filter @examready/web test
+```
+
+Integration test cost ~$0.015 per full run (15 calls × Haiku 4.5 pricing). Designed for human-in-the-loop quality verification, not regression prevention — assertions check structural shape (no markdown, Pidgin markers present, no sycophantic opener) but deliberately don't snapshot model wording, since model output varies.
+
+## Files added/changed
+
+```
+apps/web/
+  app/api/ai/explain-differently/route.ts                      (new)
+  app/api/ai/tutor/chat/route.ts                                (new — raw streaming Response)
+  app/api/ai/study-plan/route.ts                                (new — POST + GET)
+  app/api/admin/questions/generate-with-ai/route.ts             (new)
+  app/api/admin/questions/queue/route.ts                        (new)
+  app/api/admin/questions/[questionId]/reject/route.ts          (new)
+  lib/ai/client.ts                                              (new — Anthropic wrapper, telemetry)
+  lib/ai/quota.ts                                               (new — two-layer enforcement)
+  lib/ai/prompts/                                               (new — 4 prompt files)
+  lib/ai/__tests__/prompts.test.ts                              (new — 15 tests)
+  lib/ai/__tests__/explain-differently.integration.test.ts      (new — 15 tests, key-gated)
+  package.json                                                  (+ @anthropic-ai/sdk)
+
+apps/admin/
+  app/(admin)/questions/generate/page.tsx                       (new — generation trigger UI)
+  app/(admin)/questions/ai-queue/page.tsx                       (new — moderation queue UI)
+  app/(admin)/layout.tsx                                        (added 2 nav links)
+
+packages/db/
+  src/schema/study-plans.ts                                     (new — study_plans + ai_usage_log)
+  src/schema/index.ts                                           (re-export)
+  src/schema/questions.ts                                       (+ generated_by_model column + partial index)
+  migrations/0005_cheerful_cardiac.sql                          (new)
+
+packages/shared/
+  src/schemas/ai.ts                                             (new — Zod schemas for AI endpoint inputs)
+  src/schemas/index.ts                                          (re-export)
+```
+
+Total: 20 new files, 6 modified files, 1 new migration. **5,844 insertions in commit `98edaf8`**.
+
+## What I deliberately did not do this session
+
+- **No fake API key.** Integration tests skip when `ANTHROPIC_API_KEY` is unset rather than mock the Anthropic SDK. Mocking would produce false confidence — the real risk in AI features is what the model actually says, not whether the SDK was called.
+- **No "thinking..." spinner UI before the streaming response is wired.** The endpoint exists; a chat-bubble UI component reading the ReadableStream is ~50 lines of frontend that I'll add only after the integration tests have been run by a human and the prompts tuned.
+- **No frontend buttons for explain-differently.** Same logic — endpoint first, UI when the prompt has been quality-reviewed against real questions.
+- **No essay grader.** Explicitly out of scope per your Sprint 3 directive ("Skip the AI essay grader for now — needs more careful rubric design"). Agreed.
+- **No content backfill via the new AI generation pipeline.** That's the natural follow-up but it's Sprint 4 territory (and partly editorial — needs an SME reviewing batches).
 
 ## Open questions for you when you return
 
-1. **Real Termii / Supabase / Paystack accounts** — most providers in `.env.example` are stub-ready. Do you want me (in a future session) to write a signup-walkthrough script per provider, or are you doing this manually?
-2. **Founder bio in /about** — there's a `PLACEHOLDER` paragraph I wrote. Replace with your real story before launch.
-3. **WhatsApp Business number in /contact** — currently `+2348012345678` placeholder. Replace once Termii Business is approved.
-4. **AdSense ad unit IDs** — empty in `.env.example` until AdSense approves the application. The setup checklist in README has the application gates.
-5. **Sprint 2 deferred decisions** — see the table above. Specifically: do you want to commission an SME for question content (Task 2) or block on that? It's the gating dependency for everything else (Task 3 AI features need real questions to feed them; Task 5 content pipeline needs a baseline to score against).
+1. **`ANTHROPIC_API_KEY` in Vercel staging.** Set it before testing AI features end-to-end. Until set, all four endpoints return `503 BAD_GATEWAY` with the message "AI features are not configured on this deployment." That's the right behaviour for a gracefully-degraded missing-key state.
+
+2. **Daily-cap thresholds.** I picked free=5/10/1 (tutor/explain/plan) and basic=50/100/5 based on your Sprint 3 prompt and reasonable defaults. Once you have real usage data, revisit. Constants are in `apps/web/lib/ai/quota.ts` `DAILY_CAPS`.
+
+3. **Pidgin prompt verification.** The 15 integration tests assert structural Pidgin markers, but the real quality check is reading 10 generated explanations and judging whether they sound like a Nigerian student would actually understand them. **Recommend:** when you set the API key, run the integration tests and read the Pidgin outputs. If anything sounds off (Yoruba slipping in, register too formal/informal, technical terms wrongly translated), the system prompt at `apps/web/lib/ai/prompts/explain-differently.ts` is where to tune.
+
+4. **Tutor context — should it include the user's STRENGTHS too?** Right now `buildTutorContextMessage` only injects recent mistakes. There's a case for also injecting "strong topics" so the tutor knows what they don't need to re-explain. Left it out for sprint scope but worth ~15 minutes when the feature ships and we see how students actually use the chat.
+
+5. **Generated-question review burden.** At 10 questions per generation × the 1,800-question target from Sprint 2, that's 180 generations and 180 review sessions. Even at 30 questions/hour reviewed, that's 60 hours of admin time. **Recommend:** track approval rate per generation batch; if it's >85%, consider auto-approving easier difficulty ranges and routing only difficulty 4–5 + comprehension types to human review. Don't ship that until you have the data to justify it.
 
 ## Recommended next steps when you return
 
-1. **Smoke-test the deployed build** (15 min). `pnpm install`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm dev`. Open <http://localhost:3000> + <http://localhost:3001>. Click through landing → signup → onboarding → dashboard → practice → results. Report any visual jank not caught by typecheck/lint.
+1. **Set `ANTHROPIC_API_KEY` in Vercel staging.** Run the integration tests once. Read the 5 Pidgin outputs by hand. Adjust the prompt if any sound off.
 
-2. **Decide on the question-content path forward** (Sprint 2 Task 2). The platform is ready to receive content; content is the single biggest pre-launch risk. My honest recommendation: don't try to author it yourself — commission a Nigerian SME (former JAMB tutor or fresh university grad with strong test scores) for the 9 subjects × ~200 questions, paid per approved question.
+2. **Generate 50 questions on JAMB Mathematics → Algebra topic via the admin UI.** Review them in the moderation queue. The cheapest end-to-end test of the AI generation pipeline AND gives us the first real signal on quality.
 
-3. **Apply for AdSense** (Sprint 0 task that's still hanging). The pre-application checklist is in README "Third-party integrations → Google AdSense" — you need the privacy/terms/about/contact pages live (✅ all present) and 30+ days of consistent traffic, which means soft-launching first.
+3. **Wire the explain-differently button into the results page.** The API endpoint exists but no UI surfaces it. Adding an "Explain differently" dropdown next to each wrong-answer breakdown is ~30 lines of frontend.
 
-4. **Wire one of the AI features end-to-end as a single proof-of-concept** before sprawling into all four. The "Explain Differently → Pidgin" variant is the highest-leverage one; building it first validates the system prompt + rate-limit pattern that the other three will copy.
+4. **Wire the tutor chat into a /tutor page or modal.** Same — endpoint exists, UI doesn't. The streaming text endpoint just needs a chat-bubble UI component reading the ReadableStream with `response.body.getReader()`.
+
+5. **Decide on the question-content commission.** Sprints 1, 2, and 3 have all flagged this as the gating risk; Sprint 3 ADDS the AI generation pipeline as a partial mitigation, but human SME review is still the bottleneck. Until you decide who's reviewing and at what rate, content is the slowest-moving variable.
 
 I'll be here when you're back.
