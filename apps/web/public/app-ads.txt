@@ -1,0 +1,2 @@
+# Authorized Sellers for Apps (mobile / PWA) — fill in after AdSense approval.
+# Same format as ads.txt.

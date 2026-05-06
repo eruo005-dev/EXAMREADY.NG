@@ -1,0 +1,4 @@
+# Authorized Digital Sellers — fill in after Google AdSense approval.
+# Format: <domain>, <publisher account id>, <relationship>, <certification authority id>
+# Example after AdSense approval:
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

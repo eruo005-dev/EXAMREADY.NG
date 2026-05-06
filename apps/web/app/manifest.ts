@@ -1,0 +1,22 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'ExamReady.ng — Nigerian Exam Prep',
+    short_name: 'ExamReady',
+    description: 'Pass JAMB, WAEC, NECO, Post-UTME with confidence.',
+    start_url: '/dashboard',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#0F7A3D',
+    orientation: 'portrait',
+    lang: 'en-NG',
+    dir: 'ltr',
+    icons: [
+      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
+    categories: ['education', 'productivity'],
+  };
+}
