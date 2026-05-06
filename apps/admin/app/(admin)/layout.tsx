@@ -4,6 +4,12 @@ import type { ReactNode } from 'react';
 
 import { getAdminUser } from '@/lib/auth/server';
 
+// Admin pages are auth-gated per request — there's nothing to statically
+// prerender. Forcing dynamic rendering also means the build doesn't fail
+// when env vars (Supabase URL/keys) are unset on a fresh Vercel project,
+// which is exactly the failure mode that broke deploy 2026-05-06.
+export const dynamic = 'force-dynamic';
+
 // Route groups (parentheses) are stripped from the URL by Next.js, so the
 // actual paths are /dashboard, /questions, etc.
 const NAV_ITEMS = [
