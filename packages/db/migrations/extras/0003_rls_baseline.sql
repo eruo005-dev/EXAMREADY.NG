@@ -46,11 +46,19 @@ END $$;
 -- Reference catalog tables (exams, subjects, topics) are public-readable.
 -- Their content is the same for every visitor and unauthenticated marketing
 -- pages render exam lists.
-CREATE POLICY IF NOT EXISTS "exams_public_read" ON public.exams
+--
+-- Note: CREATE POLICY IF NOT EXISTS is PG 17+. We use DROP IF EXISTS first
+-- to keep this idempotent across the broader Postgres versions Supabase
+-- supports (currently 15-17). The migration runner's _extras_applied table
+-- normally prevents re-runs, so the DROP-then-CREATE only fires once per env.
+DROP POLICY IF EXISTS "exams_public_read" ON public.exams;
+CREATE POLICY "exams_public_read" ON public.exams
   FOR SELECT TO anon, authenticated USING (is_active = true);
 
-CREATE POLICY IF NOT EXISTS "subjects_public_read" ON public.subjects
+DROP POLICY IF EXISTS "subjects_public_read" ON public.subjects;
+CREATE POLICY "subjects_public_read" ON public.subjects
   FOR SELECT TO anon, authenticated USING (true);
 
-CREATE POLICY IF NOT EXISTS "topics_public_read" ON public.topics
+DROP POLICY IF EXISTS "topics_public_read" ON public.topics;
+CREATE POLICY "topics_public_read" ON public.topics
   FOR SELECT TO anon, authenticated USING (true);

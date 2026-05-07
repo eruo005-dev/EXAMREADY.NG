@@ -13,7 +13,8 @@
  */
 import 'dotenv/config';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
@@ -25,6 +26,8 @@ if (!url) {
 }
 
 const isLocal = process.env.LOCAL_DEV === 'true';
+// ESM-compatible replacement for __dirname (tsx in Node 22+ runs as ESM).
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const migrationsRoot = resolve(__dirname, '../migrations');
 
 const log = (msg: string): void => {
@@ -35,7 +38,9 @@ const log = (msg: string): void => {
 async function applyLocalStub(sql: postgres.Sql): Promise<void> {
   const dir = resolve(migrationsRoot, 'local');
   if (!existsSync(dir)) return;
-  const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
   for (const file of files) {
     log(`local stub: ${file}`);
     const content = readFileSync(resolve(dir, file), 'utf8');
@@ -56,7 +61,9 @@ async function applyExtras(sql: postgres.Sql): Promise<void> {
     )
   `;
 
-  const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
   for (const file of files) {
     const rows = await sql<{ count: number }[]>`
       SELECT count(*)::int FROM public._extras_applied WHERE filename = ${file}

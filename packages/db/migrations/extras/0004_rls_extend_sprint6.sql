@@ -47,5 +47,7 @@ END $$;
 -- exam_waitlist is public-INSERTable so the marketing /coming-soon page
 -- can collect signups without authentication. We allow INSERT but not
 -- SELECT/UPDATE/DELETE for anon — admin reads via service-role.
-CREATE POLICY IF NOT EXISTS "exam_waitlist_public_insert" ON public.exam_waitlist
+-- (DROP-IF-EXISTS first because CREATE POLICY IF NOT EXISTS is PG 17+ only.)
+DROP POLICY IF EXISTS "exam_waitlist_public_insert" ON public.exam_waitlist;
+CREATE POLICY "exam_waitlist_public_insert" ON public.exam_waitlist
   FOR INSERT TO anon, authenticated WITH CHECK (true);

@@ -15,12 +15,16 @@
  */
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { eq } from 'drizzle-orm';
 
 import { createDb } from '../src/client';
 import { exams, options as optionsTable, questions, subjects, topics } from '../src/schema';
+
+// ESM-compatible replacement for __dirname (tsx in Node 22+ runs as ESM).
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 type ExamSeed = {
   slug: string;
