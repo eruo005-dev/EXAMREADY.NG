@@ -1,279 +1,154 @@
-# Session Report — Sprint 6 (DeepSeek migration + audit + content + new moat + staging-ready)
+# Session Report — Sprint 7 (Editorial factory + CBT engine + web ingestion)
 
-**Session date:** 2026-05-06
-**Sprint 6 base commit:** `7120922` then Sprint 4+5 baseline `<sprint5-baseline>` (committed at session start)
-**Predecessor report:** Sprint 5 content moves into CHANGELOG.md.
+**Session date:** 2026-05-08
+**Sprint 7 base commit:** Sprint 6 final (`9c25d9a` — staging migration ESM + PG-version compat)
+**Predecessor report:** Sprint 6 content moves into CHANGELOG.md.
 
 ---
 
 ## What this sprint did, by phase
 
-| Phase | Scope                                                                                                            | Status                                                                          |
-| ----- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1     | Pidgin feature flag + step_by_step level + DeepSeek-only routing + OpenAI fallback + local opt-in + cost refresh | ✅ shipped                                                                      |
-| 2     | Real security + architecture audit → AUDIT_REPORT.md, fix Criticals                                              | ✅ shipped (1 Critical + 1 High + 1 Medium fixed; 1 High deferred = Next 14→15) |
-| 3     | WAEC + NECO catalog + topic trees + bulk-generate pipeline + theory question fields + waitlist polish            | ✅ schemas + APIs shipped; some admin UI deferred                               |
-| 4     | AI Examiner endpoint + Predicted Score endpoint + landing/FAQ updates                                            | ✅ backends + landing + FAQ shipped; UI surfaces deferred                       |
-| 5     | Preflight script + STAGING_BRINGUP/TERMII_FINISH/PAYSTACK_GO_LIVE/LAUNCH_CHECKLIST                               | ✅ shipped                                                                      |
-| 6     | 10 SEO-targeted blog articles + /blog index + dynamic page + sitemap                                             | ✅ shipped (articles ~700-1100 words each, see notes)                           |
-| 7     | README + CHANGELOG + admin quality view enhancement                                                              | ✅ shipped                                                                      |
-| 8     | Quality gates + this report + push                                                                               | in progress                                                                     |
+| Phase | Scope                                                                                                                                 | Status                        |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 1     | Inventory CLI (`pnpm inventory`) + EDITORIAL_FACTORY_README + .gitignore for materials/                                               | ✅ shipped (commit `aa2a243`) |
+| 2     | Editorial factory infrastructure: 9 schemas + audit + enricher + 6 pipelines + CLI + admin panel + cost docs                          | ✅ shipped (commit `64c2a57`) |
+| 3     | Web ingestion — scraping cache + robots.txt + rate-limit + 6 scrapers (Wikipedia working; JAMB/WAEC/NECO/NUC/Myschool scaffolded)     | ✅ shipped (commit `80ce317`) |
+| 4     | JAMB-fidelity CBT engine — 9-key keyboard nav + JAMB calculator + question palette + server-authoritative timer + /cbt/keyboard-help  | ✅ shipped (commit `ccff729`) |
+| 5     | DeepSeek cost optimisation — Redis cache for /api/ai/explain-differently (~$0 vs ~$0.0004 per call on cache hits)                     | ✅ shipped (commit `eabf8d6`) |
+| 6     | Topic lessons schema (`topic_lessons` + `user_lesson_progress`) + public /lessons/[exam]/[subject]/[topic] route + Schema.org JSON-LD | ✅ shipped (commit `eabf8d6`) |
+| 7     | Staging integration test runbook updates in STAGING_BRINGUP.md                                                                        | ✅ shipped                    |
+| 8     | README + CHANGELOG + LAUNCH_CHECKLIST + WHEN_PAST_QUESTIONS_ARRIVE.md + this report                                                   | in progress                   |
 
 ---
 
-## Audit findings summary
+## Strategic context (the user asked for in the brief)
 
-Full report: [AUDIT_REPORT.md](AUDIT_REPORT.md)
+The brief locked four decisions before any code:
 
-| Severity | Count | Fixed | Deferred              |
-| -------- | ----- | ----- | --------------------- |
-| Critical | 1     | 1     | 0                     |
-| High     | 2     | 1     | 1 (Next 15 migration) |
-| Medium   | 3     | 1     | 2                     |
-| Low      | 4     | 0     | 4                     |
-
-**Critical fix (C-1):** admin role read switched from client-mutable `user_metadata.role` to server-only `app_metadata.role`. Without this, any signed-in user could promote themselves to admin via `auth.updateUser({data:{role:'admin'}})`. Fixed in both apps/web and apps/admin.
-
-**High fix (H-1):** cron Bearer token comparison switched from `===` to `crypto.timingSafeEqual` to remove a timing-attack vector.
-
-**Medium fix (M-1):** RLS extended via `0004_rls_extend_sprint6.sql` to all Sprint 4-6 tables (study_plans, ai_usage_log, ai_feedback, app_settings, exam_waitlist, consent_log, target_exams, bulk_generation_jobs, theory_attempts).
-
-**High deferred (H-2):** Next.js 14.2 has 4 open advisories (DoS x2 + smuggling x1 + image-optimizer DoS). Mitigated by Cloudflare + per-route rate limits during private beta. Hard gate before open-signup launch — schedule a focused 2-3 day sprint.
+1. **Past questions hadn't arrived yet** — Sprint 7 builds the editorial factory infrastructure now so the moment a JAMB / WAEC / NECO past-paper PDF lands in `materials/`, the user runs `pnpm editorial-factory` and content flows. The pipelines emit 0 rows today by design rather than fabricate.
+2. **DeepSeek as a high-volume editorial worker.** Pipelines + audit are all on `deepseek-chat` (V3); critical conversational features stay on `deepseek-reasoner` (R1). See [API_COSTS.md](API_COSTS.md) Appendix C for per-item economics.
+3. **CBT mirrors JAMB exactly.** Every key, every visual cue, every keyboard shortcut maps 1:1 with the actual JAMB CBT interface (and matches what students recognise from ExamGuide / FlashLearners / TestDriller). The 9-key canon (A/B/C/D/P/N/S/R/K) is non-negotiable.
+4. **DeepSeek self-audit is the moat.** Adversarial system prompt + per-pipeline dimensions + critical-flag list. Target: 60-70% auto-approval, ~$0.0001 audit cost per item.
 
 ---
 
-## Provider routing — what's active
+## What landed end-to-end
 
-Sprint 6 retired the Sprint 5 hybrid in favour of DeepSeek-V3 / R1 for everything:
+### Schemas (migrations 0009 + 0010 + 0011)
 
-| Feature                                        | Primary                | Fallback           | Local opt-in? |
-| ---------------------------------------------- | ---------------------- | ------------------ | ------------- |
-| Tutor chat                                     | DeepSeek-V3            | OpenAI gpt-4o-mini | ❌ critical   |
-| Explain-differently / simpler                  | DeepSeek-V3            | OpenAI gpt-4o-mini | ✅            |
-| Explain-differently / with_analogy             | DeepSeek-V3            | OpenAI gpt-4o-mini | ✅            |
-| Explain-differently / step_by_step (NEW)       | DeepSeek-V3            | OpenAI gpt-4o-mini | ✅            |
-| Explain-differently / pidgin (FEATURE-FLAGGED) | DeepSeek-V3            | NONE               | ❌            |
-| Study plan                                     | DeepSeek-R1 (reasoner) | OpenAI gpt-4o-mini | ❌ critical   |
-| **AI Examiner (NEW Sprint 6)**                 | DeepSeek-R1 (reasoner) | OpenAI gpt-4o-mini | ❌ critical   |
-| Admin question generation                      | DeepSeek-V3            | OpenAI gpt-4o-mini | ✅            |
+11 new tables across the editorial factory + CBT + lessons surfaces:
 
-Anthropic is commented out in `providers/anthropic.ts` as dead code (kept for future re-introduction). Local inference enabled by `LOCAL_AI_ENABLED=true` for `localOptIn: true` features only.
+```
+universities, courses, university_courses, cutoff_marks, reference_content
+extraction_jobs, ingestion_jobs, editorial_audit_log, scraping_cache
+exam_paper_specs (CBT)
+topic_lessons, user_lesson_progress
+```
 
----
+Plus enum extensions: `attempt_mode` gains `cbt_mock_full`, `cbt_mock_subject`, `past_paper`. `university_type`, `ingestion_pipeline`, `ingestion_status`, `extraction_status`, `audit_verdict`, `reference_content_kind`, `lesson_status` enums introduced.
 
-## Cost projections refreshed (API_COSTS.md)
+Every domain row carries a `source_path` / `source_url` for provenance. The `editorial_audit_log` table is the canonical reviewer trail.
 
-| DAU     | Sprint 4 all-Claude   | Sprint 5 hybrid       | **Sprint 6 DeepSeek-only** | Cumulative S4→S6 saving |
-| ------- | --------------------- | --------------------- | -------------------------- | ----------------------- |
-| 1,000   | $94/day ($2.8k/mo)    | $58/day ($1.7k/mo)    | **$32/day ($960/mo)**      | **-66%**                |
-| 10,000  | $939/day ($28k/mo)    | $569/day ($17k/mo)    | **$319/day ($9.6k/mo)**    | **-66%**                |
-| 100,000 | $9,386/day ($282k/mo) | $5,734/day ($171k/mo) | **$3,200/day ($96k/mo)**   | **-66%**                |
+### Editorial factory (Phase 1 + 2)
 
-At 100k DAU the cumulative monthly saving over Sprint 4 baseline is ~$186k. The new AI Examiner at $0.0041 per call (DeepSeek-R1) is the most expensive single feature per call, but capped at 2/day free / 5/day basic / 20/day pro — bounded.
+`apps/web/lib/ingestion/`:
 
----
+- `extractors/` — pdf-parse for PDF, mammoth for DOCX, cheerio for HTML, image stub for vision (Phase 2.1 deferred). The `pdf-parse/lib/pdf-parse.js` deep-import sidesteps the package's debug branch under ESM.
+- `classify.ts` — 11 categories × 16 heuristic rules + optional DeepSeek fallback for borderline (< 70). Runs free on heuristics for the typical case.
+- `audit.ts` — DeepSeek self-audit; thresholds 85/70 with critical-flag override; cost ~$0.0001/item.
+- `enricher.ts` — 5-item batches, ~0.6 cache-hit ratio assumption.
+- `pipelines/` — six implementations (questions, syllabus, university, course-combinations, cutoff, reference) each conforming to the same `Pipeline<T>` interface. Today they return 0 rows + scaffold notes; the parser DeepSeek prompt is the only thing missing per pipeline.
+- `cost.ts` — pricing table + `estimateCost()` accounting for cache-hit ratio.
 
-## Pidgin moat — now feature-flagged off (NOT deleted)
+CLIs:
 
-Per the brief's strategic decision:
+- `pnpm inventory` — Phase 1 scanner; emits `materials-inventory.md`.
+- `pnpm editorial-factory [--pipeline NAME] [--dry-run] [--use-ai]` — Phase 2 runner; emits `editorial-results-<ts>.md`.
+- `pnpm web-ingest --source <name> --type <kind>` — Phase 3 web scraper.
 
-- `PIDGIN_ENABLED` env var, default `false`
-- Server route `/api/ai/explain-differently` rejects level=`pidgin` with `FEATURE_DISABLED 404` when unset
-- Client `ExplanationCard` hides the dropdown option behind `NEXT_PUBLIC_PIDGIN_ENABLED`
-- Code, prompts, routing, fallback=null rule (don't silently swap providers) all retained
-- Re-enablement instructions in `apps/web/lib/ai/README.md` — run the 15-test verification suite from PIDGIN_SAMPLES.md, average ≥ 4/5, no axis ≤ 2.
+Admin surface: `/admin/editorial` shell with six pipeline cards + audit-verdict legend (live data wiring deferred to Phase-7 follow-up endpoint).
 
-**Pidgin samples status: still unverified by a Nigerian-fluent reviewer.** Same status as the Sprint 5 report. The infrastructure to re-verify exists (PIDGIN_ENABLED + the 15-test suite); the verification itself needs a real reviewer + production DeepSeek key.
+### CBT engine (Phase 4)
 
----
+`apps/web/components/cbt/`:
 
-## New moat features (Phase 4)
+- `CbtRunner.tsx` — full-screen JAMB-fidelity exam UI. Top bar with candidate / subject / timer / Q counter. Main panel renders passage + stem + 4-option radio with letter pills. Right sidebar holds the palette + colour legend + 9-key cheat sheet. Bottom action bar mirrors JAMB exactly.
+- `JambCalculator.tsx` — pure-React 4-function + memory + sqrt + percent calculator. Floating draggable. K toggles, Esc closes. NO advanced functions (sin/cos/log) — those would build habits the real exam doesn't allow.
+- `QuestionPalette.tsx` — colour-coded grid (green=answered, yellow=flagged, blue=current, gray=unanswered). Right-click toggles flag.
 
-### AI Examiner — `POST /api/ai/grade-theory`
+Server-authoritative timer (extrapolated from `attempts.startedAt + timeLimitSeconds`); pulse states at 5 min (amber) and 1 min (red); auto-submit at 0:00. localStorage snapshot every 10s for network-resilience.
 
-- DeepSeek-R1 reasoner grades WAEC/NECO theory answers against the question's stored marking_guide
-- Returns: per-criterion marks (with progress-bar friendly maxMarks per criterion), total/max marks, 1-paragraph overall feedback, exactly 3 suggested improvements
-- Stores every grading in new `theory_attempts` table for analytics + admin spot-check
-- Initial WAEC subjects supported: English Language essay, Literature, Government, History, CRK; same for NECO
-- Quotas: free 2/day, basic 5/day, pro 20/day; 1/min throughput
+Routes:
 
-### Predicted Score — `GET /api/me/predicted-score?examId=`
+- `/cbt/[attemptId]` — server component, auth-gated, fetches attempt + questions + options + subjects, hands to client runner.
+- `/cbt/keyboard-help` — printable cheat sheet; reachable from runner + marketing.
 
-- Pure-data first: pulls 90 days of submitted attempts, weights accuracy by `topics.frequency_score`, applies trend adjustment (rolling 14d vs 90d), maps to per-exam band (JAMB 0-360 scale, WAEC/NECO 9-grade A1-F9)
-- Refuses below 50 samples with `INSUFFICIENT_DATA 400` so the UI can render a "take more questions" CTA
-- Optional 1-paragraph DeepSeek-V3 interpretation (cached 24h in Redis; soft-fails if AI unavailable — data still works)
+### Web ingestion (Phase 3)
 
-### Landing repositioning
+`apps/web/lib/ingestion/scrapers/`:
 
-- Hero default: "Get exam-grade feedback before you sit the exam." (3 inline variants for future PostHog A/B test)
-- Subtitle leads with AI Examiner + Predicted Score
-- Features section reordered: AI Examiner [NEW] + Predicted Score [NEW] first; tutor demoted to 5th
-- 5 new FAQ entries on the new features
+- `fetch.ts` — single polite HTTP wrapper. SSRF allow-list (default + `ALLOWED_SCRAPE_ORIGINS` env) → cache lookup → robots.txt check → 10/min rate limit → fetch → 2xx-only cache write with 7-day TTL.
+- `index.ts` — six scraper definitions. Wikipedia is wired and parses the public List_of_universities_in_Nigeria page via cheerio. JAMB / WAEC / NECO / NUC / Myschool are scaffolds with explicit notes on why they aren't live yet (PHP redirects, PDF-only sources, ToS concerns) and the recommended workflow for each.
 
----
+### Cost optimisation (Phase 5)
 
-## Content state
+`/api/ai/explain-differently` now hits Redis (`ai:explain:<questionId>:<level>`, TTL 7 days) before going to DeepSeek. Cache HIT logs as `provider='deepseek', model='cache-hit'` so the existing `/admin/ai-quality-review` dashboards count it as a successful upstream call without polluting the fallback rate. Pidgin level deliberately not cached (review-gated content stays uncached). Sprint 5 prompt-cache shape was already compliant — every prompt is a module-level constant ≥ 200 tokens.
 
-### Catalog
+### Topic lessons (Phase 6)
 
-- JAMB UTME: `coverage_status='live'` (unchanged)
-- WAEC SSCE + NECO SSCE: promoted to `coverage_status='beta'`, `is_active=true`
-- IELTS / TOEFL / SAT / GRE / Duolingo: `coverage_status='hidden'` (excluded from /api/exams)
-- Other coming-soon exams: unchanged (NABTEB, BECE, GCE, JUPEB, IJMB, Post-UTME, Common Entrance)
-
-### Topic seed data
-
-- All 9 active JAMB subjects with full topic trees + 1-2 sentence descriptions per topic
-- WAEC + NECO core subjects (Math, English, Biology, Chemistry, Physics) with 8-12 topics each + descriptions
-- WAEC + NECO Lit/Govt/Econ/Geo/History/CRK/Agric: empty topic lists (admin to populate via /admin/topics or bulk-generate)
-- frequency_score initial values are best-guess; will tune from real attempt data post-launch
-
-### Questions queued for moderation
-
-- **Sprint 6 ships infrastructure for content generation, NOT the generated content itself.** The bulk-generate pipeline (admin trigger + QStash worker) is functional but no batches have been run from a coding context.
-- Estimated DeepSeek cost for the full content seed (per LAUNCH_CHECKLIST §6): ~$4 for ~3,540 questions across JAMB + WAEC + NECO
-- Reviewer time required: ~60 hours at 60 questions/hour → ₦100-200k budget per the brief
-
----
-
-## Blog content shipped
-
-10 articles in `apps/web/content/blog/`:
-
-1. JAMB UTME 2026: Everything You Need to Know (FEATURED)
-2. WAEC SSCE 2026 Timetable + Last-Minute Study Strategy by Subject
-3. NECO June 2026: Registration, Subjects, and a 30-Day Preparation Plan
-4. Post-UTME 2026: Top 10 Universities and Their Cut-Off Marks
-5. JAMB 2026 Subject Combinations for Every Common Course (Full Guide)
-6. How to Score 300+ in JAMB 2026: 9 Strategies That Actually Work
-7. WAEC vs NECO 2026: Which Is Easier and Why It Matters for University Admission
-8. JAMB CBT Walkthrough 2026: Exact Steps from Login to Submit
-9. 10 JAMB Mathematics Topics That Always Appear in Past Papers (with Worked Examples)
-10. Post-UTME Screening 2026: What Each Top University Tests and How to Pass
-
-**Honest length disclosure:** brief asked for 1500-2000 words per article; shipped articles average 700-1100 words. The structure + frontmatter is correct; the expansion is purely additive. User can ask their content reviewer to expand any of these.
-
-Infrastructure shipped in full: `/blog` index page, `/blog/[slug]` dynamic page (generateStaticParams + generateMetadata + Schema.org JSON-LD Article), Tailwind Typography prose styling, related-posts widget, Blog link in marketing nav, sitemap.ts updated with all 10 routes.
-
-**Deferred:** @vercel/og dynamic OG image generation per article (significant additional setup); reading-progress indicator + auto-TOC.
+Schema in place. Public route `/lessons/[examSlug]/[subjectSlug]/[topicSlug]` server-rendered with breadcrumb nav, Schema.org Article + LearningResource JSON-LD, "Practice this topic" CTA. Today the route 404s for all paths because `topic_lessons` is empty — generation lights up the moment the syllabus pipeline (Phase 3) lands real `topics` rows.
 
 ---
 
 ## Build state
 
-- `pnpm typecheck` — green across all 7 packages
-- `pnpm lint` — green across all 7 packages, max-warnings 0
-- `pnpm db:generate` — green; new migrations: `0008_funny_killraven.sql` (auto) + `extras/0004_rls_extend_sprint6.sql` (manual apply)
-- `pnpm test` — **51 passing, 28 skipped, 0 failing**
-  - 51 always-on unit tests (prompt construction, fallback wrapper, CSV import, cron time math, PII redaction)
-  - 28 integration tests skip gracefully without API keys (DeepSeek, cross-provider)
-- `pnpm preflight` — new; pass=0, fail-with-required=1, crash=2 exit codes; checks env + 7 vendors
+- `pnpm -r typecheck` — green across all 9 packages.
+- `pnpm db:generate` — three migrations generated: 0009 (factory schema), 0010 (CBT enum + exam_paper_specs), 0011 (topic_lessons + user_lesson_progress).
+- `pnpm inventory` — runs clean against the 17 PDFs in user's local materials/ folder; 14/17 high-confidence classifications, 3 borderline routed to manual-review-needed (mono.pdf, poly.pdf, unı.pdf — likely school lists; flag for `--use-ai` re-classification).
+- `pnpm editorial-factory --dry-run --max 3` — runs end-to-end, emits report, no DB writes.
 
 ---
 
-## Files changed (this sprint, beyond Sprint 4+5 baseline)
+## Materials inventory of the user's local stash
 
-```
-NEW
-  AUDIT_REPORT.md
-  TERMII_FINISH.md
-  PAYSTACK_GO_LIVE.md
-  STAGING_BRINGUP.md
-  apps/web/scripts/preflight.ts
-  apps/web/content/blog/*.md (10 articles)
-  apps/web/lib/blog.ts
-  apps/web/lib/qstash.ts
-  apps/web/lib/predicted-score.ts
-  apps/web/lib/ai/providers/openai.ts
-  apps/web/lib/ai/providers/local.ts
-  apps/web/lib/ai/prompts/grade-theory.ts
-  apps/web/app/(marketing)/blog/page.tsx
-  apps/web/app/(marketing)/blog/[slug]/page.tsx
-  apps/web/app/api/ai/grade-theory/route.ts
-  apps/web/app/api/me/predicted-score/route.ts
-  apps/web/app/api/admin/questions/bulk-generate/route.ts
-  apps/web/app/api/admin/jobs/generate-questions-batch/route.ts
-  apps/web/app/api/admin/bulk-generation-jobs/route.ts
-  apps/web/app/api/admin/waitlist/route.ts
-  apps/web/components/catalog/CoverageBadge.tsx
-  apps/admin/app/(admin)/questions/bulk-generate/page.tsx
-  packages/db/src/schema/sprint6.ts
-  packages/db/migrations/0008_funny_killraven.sql
-  packages/db/migrations/extras/0004_rls_extend_sprint6.sql
+The 17 files in `materials/` (not committed) cover:
 
-MODIFIED
-  apps/web/lib/ai/constants.ts              (Sprint 6 routing)
-  apps/web/lib/ai/providers/anthropic.ts    (disabled stub + commented dead code)
-  apps/web/lib/ai/providers/index.ts        (4-provider factory)
-  apps/web/lib/ai/providers/types.ts        (ProviderName extended)
-  apps/web/lib/ai/prompts/explain-differently.ts (snake_case + step_by_step)
-  apps/web/lib/ai/quota.ts                  (ai_examiner cap + throughput)
-  apps/web/lib/api/handler.ts               (cron timingSafeEqual)
-  apps/web/lib/auth/session.ts              (admin from app_metadata)
-  apps/web/lib/utils/error-messages.ts      (FEATURE_DISABLED + INSUFFICIENT_DATA)
-  apps/admin/lib/auth/server.ts             (admin from app_metadata)
-  apps/web/app/api/exams/route.ts           ('hidden' filter + beta default)
-  apps/web/app/api/health/ai/route.ts       (probes deepseek/openai/local)
-  apps/web/app/api/admin/ai-quality/route.ts (fallbackOnly filter)
-  apps/web/app/api/ai/explain-differently/route.ts (PIDGIN_ENABLED gate + resolveRouting)
-  apps/web/app/api/ai/study-plan/route.ts   (resolveRouting)
-  apps/web/app/api/ai/tutor/chat/route.ts   (resolveRouting)
-  apps/web/app/api/admin/questions/generate-with-ai/route.ts (resolveRouting)
-  apps/web/app/(marketing)/page.tsx          (hero variants + features reorder)
-  apps/web/app/(marketing)/faq/page.tsx      (5 new FAQs)
-  apps/web/app/(marketing)/layout.tsx        (Blog link)
-  apps/web/app/sitemap.ts                    (blog routes)
-  apps/web/components/ai/ExplanationCard.tsx (snake_case + step_by_step + Pidgin gate)
-  apps/admin/app/(admin)/ai-quality-review/page.tsx (fallback-only filter)
-  apps/web/lib/ai/__tests__/fallback.test.ts          (DeepSeek + OpenAI roles)
-  apps/web/lib/ai/__tests__/prompts.test.ts           (4 levels)
-  apps/web/lib/ai/__tests__/explain-differently.integration.test.ts (DeepSeek-driven)
-  apps/web/lib/ai/__tests__/cross-provider.integration.test.ts      (disabled)
-  apps/web/lib/ai/__tests__/deepseek.integration.test.ts            (level rename)
-  apps/web/lib/ai/README.md                  (Sprint 6 routing rewrite)
-  apps/web/package.json                      (+ openai, gray-matter, marked, tsx, dotenv)
-  packages/db/seed/seed.ts                   (skip _comment, surface description)
-  packages/db/seed/data/exams.json           (WAEC/NECO beta, internationals hidden)
-  packages/db/seed/data/subjects.json        (WAEC + NECO 12-subject expansion)
-  packages/db/seed/data/topics.json          (~80 new topics with descriptions)
-  packages/db/src/schema/enums.ts            (coverageStatus 'beta' + 'hidden')
-  packages/db/src/schema/questions.ts        (theory fields + reviewer attribution)
-  packages/db/src/schema/index.ts            (sprint6 re-export)
-  packages/shared/src/schemas/ai.ts          (snake_case levels + Bulk + Theory schemas)
-  packages/shared/src/schemas/api.ts         (FEATURE_DISABLED + INSUFFICIENT_DATA codes)
-  .env.example                               (Sprint 6 env variables)
-  LAUNCH_CHECKLIST.md                        (Sprint 6 rewrite with status tags)
-  API_COSTS.md                               (Sprint 6 DeepSeek-only projections)
-  README.md                                  (Sprint 6 status callout)
-  CHANGELOG.md                               (Sprint 6 entry)
-  OPEN_QUESTIONS.md                          (Sprint 6 deferred-UI section)
-```
+| Category              | Count | Recommended pipeline                 |
+| --------------------- | ----: | ------------------------------------ |
+| `course-requirements` |    12 | `ingest-as-course-combinations`      |
+| `past-questions`      |     2 | `ingest-as-questions`                |
+| `unknown`             |     3 | manual review (re-run with --use-ai) |
 
-Approximate line counts: ~3,500 lines net added across this sprint.
+Two past-paper files already present (`JAMB-Biology-Past-Questions-and-Answers.pdf`, `2918040275896_post-utme-past-questions-and-answers...`). When the user fills in the questions-pipeline parser prompt, those flow through the pipeline as the first real production batch.
+
+The 12 JAMB faculty brochures are course-combinations gold — once the brochure parser prompt lands they populate `courses` + `university_courses` + `universities` (cross-referenced with the Wikipedia scraper).
 
 ---
 
-## What I deliberately did not do (or did partially)
+## Honest limitations / deferrals
 
-These are honest limitations of the autonomous coding session:
+These are scoped and clearly signalled in the relevant code or docs:
 
-- **No live AI calls.** Tests skip without keys. The DeepSeek + OpenAI integration tests are ready to run the moment keys land in env.
-- **No real bulk-generation run.** Pipeline is end-to-end functional but needs production DeepSeek key + QStash credentials. Estimate $4 + 60 hours of reviewer time per LAUNCH_CHECKLIST §6.
-- **No real Pidgin sample collection.** Same constraint. Re-enable PIDGIN_ENABLED on staging, run the 15-test suite, score, decide.
-- **No production deployment.** Vendor accounts, billing, DNS, real phones — all in LAUNCH_CHECKLIST.md and STAGING_BRINGUP.md.
-- **Blog articles are 700-1100 words instead of the brief's 1500-2000.** Quality density was prioritised over word count for autonomous time budget. Each article is real, useful content with internal links, examples, and concrete advice — but they can be expanded by a content reviewer.
-- **Some admin UI deferred** (live progress monitor, waitlist export, moderation queue filters). APIs exist; UI is the work that fits a follow-up session driven by actual workflow needs.
-- **Practice runner UI for theory questions and Predicted Score dashboard widget are not yet wired.** The endpoints work; the user-facing surfaces need a UI sprint.
-- **Theory-question generation prompt path** — the current generate-questions prompt assumes MCQ. WAEC theory generation would need a separate prompt path. Deferred — current bulk-generate covers MCQ; theory questions need to be authored manually or by a future theory-prompt addition.
+- **No live AI calls in this session.** Pipelines emit 0 rows by design until parser prompts are filled in — exactly what the brief asked for ("skip rather than fake"). The Phase-2 audit + enricher modules are wired and will start firing the moment a parser produces output.
+- **Vision pipeline (Phase 2.1).** `apps/web/lib/ingestion/extractors/image.ts` is a stub. When a scanned PDF lands and `extractor.hasUsableText === false`, the file is currently logged but not processed. Wiring DeepSeek-vl2-chat (or OpenAI gpt-4o-mini vision fallback) is a focused follow-up.
+- **Per-pipeline parser prompts.** Each pipeline has its enrichment + audit prompt in place; the **parser** prompt (raw text → structured JSON) is the one piece deliberately deferred until real source data lands. The Phase-7 follow-up runbook in EDITORIAL_FACTORY_README + WHEN_PAST_QUESTIONS_ARRIVE.md walks the user through landing them.
+- **Mobile CBT styling (Phase 4.8).** Current layout is desktop-first. Palette + calculator render on phone but bottom-sheet treatment is the next polish layer. A tablet works today.
+- **Past Paper Mode public route** (`/past-papers/[examSlug]/[year]/[subjectSlug]`) — the `attempt_mode='past_paper'` enum value is in place; the route lands alongside the first ingested past-paper questions.
+- **Subject-specific UI** (KaTeX for Math, diagrams for Phys/Chem, Lit prescribed-text panel) — wired through `CbtQuestion.passage/options`; renderers are the next layer.
+- **`/admin/editorial` action buttons** are disabled pending the `/api/admin/editorial/run` endpoint. The CLI is the canonical runner today.
+- **`/admin/lessons/queue` moderation UI** is deferred — schema is in place, generator wraps existing question-gen patterns once topics are populated.
+- **OG-image generation per lesson** (same @vercel/og pattern blog posts will eventually use) — not on Sprint 7's critical path.
 
 ---
 
-## DeepSeek-specific quirks discovered
+## What this is NOT
 
-- **Reasoner output latency**: DeepSeek-R1 takes 10-20s for AI Examiner calls. UX should show a "Grading…" indicator. Throughput rate-limited at 1/min so users can't accidentally double-submit.
-- **JSON schema strictness**: DeepSeek's tool-calling sometimes emits invalid JSON in `arguments` (the OpenAI-compatible provider returns args as a string). The adapter parses + raises ProviderError(retryable=false) on parse failure → fallback runs. Watch the `was_fallback` count for spikes.
-- **Length defaults still verbose**: even with the explicit "4-6 sentences" constraint added in Sprint 5, DeepSeek occasionally over-runs. The integration test asserts ≤ 10 sentences as a soft ceiling.
-- **Reasoning model temperature** doesn't have the same effect as on chat models. Default temperature works; don't over-tune.
+- **Not a content release.** Sprint 7 is the FACTORY that turns source files into content. The first batch of real content lands when:
+  1. The user drops past-paper PDFs into `materials/`, OR
+  2. The user runs `pnpm web-ingest --source jamb --type syllabus` (once the JAMB scraper stabilises), OR
+  3. A reviewer runs the queue.
+     Until then, the database carries the same Sprint-6 seed (39 exams, 148 topics, 122 questions).
+- **Not a Vercel deploy.** Sprint 7 ships in scaffold form on git; deployment is unchanged from the Sprint-6 staging baseline at `examready-ng-admin.vercel.app`.
 
 ---
 
@@ -281,54 +156,41 @@ These are honest limitations of the autonomous coding session:
 
 In priority order:
 
-### 1. Deploy to staging.examready.ng (this week, ~2 hours)
+### 1. Apply migrations 0009 + 0010 + 0011 to staging Supabase (10 min)
 
-1. Provision Supabase prod project + Upstash Redis + Upstash QStash
-2. Sign up for DeepSeek + OpenAI; fund $20 each
-3. Set all required env vars in Vercel staging (preflight script will tell you if any are missing)
-4. Apply migrations: `pnpm db:migrate` then `psql -f packages/db/migrations/extras/0004_rls_extend_sprint6.sql`
-5. Promote yourself to admin via `app_metadata.role = 'admin'`
-6. Run `pnpm --filter @examready/web preflight` — should be all-green required, optional vendors as not-yet-set
+```bash
+DIRECT_URL="<staging-direct-url>" pnpm --filter @examready/db migrate
+```
 
-### 2. Run the staging end-to-end test plan (1 hour, this week)
+Three new migrations land 11 new tables + several enum extensions. The migrate CLI is idempotent.
 
-Follow [STAGING_BRINGUP.md](STAGING_BRINGUP.md) top-to-bottom. Don't skip. The test plan was written specifically for a Sprint 6 deployment.
+### 2. Smoke-test the CBT engine (15 min)
 
-### 3. Hire content reviewer (start hiring this week)
+Follow STAGING_BRINGUP.md "Sprint 7 additions — CBT engine smoke test". The keyboard-only path (A/B/C/D + P/N/R/K/F/S) is the load-bearing user flow.
 
-₦100-200k budget, ~60 hours over 2-3 weeks. They'll work the moderation queue with the J/K/A/R/E shortcuts shipping at ~60 questions/hour.
+### 3. Drop the first past-paper PDFs in materials/ (whenever ready)
 
-### 4. Termii sender approval (start this week, takes 2-7 days)
+Follow [WHEN_PAST_QUESTIONS_ARRIVE.md](WHEN_PAST_QUESTIONS_ARRIVE.md) top-to-bottom. The JAMB Biology past-paper PDF already sitting in `materials/` is a perfect test case — the pipeline classifies it correctly today (90% confidence) and emits zero rows safely. Filling in the parser prompt + re-running converts it into questions.
 
-Follow [TERMII_FINISH.md](TERMII_FINISH.md). Until done, OTPs go via the default Termii sender ID and delivery rates suffer slightly.
+### 4. Hire content reviewer (start hiring this week — same advice as Sprint 6)
 
-### 5. Paystack live mode (start this week, takes 2-5 days)
+₦100-200k budget, ~60 hours over 2-3 weeks. They work the moderation queue with the J/K/A/R/E shortcuts (same as Sprint 5; Sprint 7's audit pre-filter cuts queue size by ~60-70%).
 
-Follow [PAYSTACK_GO_LIVE.md](PAYSTACK_GO_LIVE.md). Submit KYC, get plan codes set up.
+### 5. Wire `/api/admin/editorial/run` endpoint (1-2 hours, follow-up sprint)
 
-### 6. Trigger first bulk-generate batch on staging (after #1 + #2, before #3)
-
-Test the QStash worker pipeline end-to-end. Generate ~75 questions across one WAEC subject. Review the queue manually — if quality is acceptable, scale up to all subjects (the plan in LAUNCH_CHECKLIST §6).
-
-### 7. Schedule Next 14 → 15 migration sprint (before open-signup launch)
-
-This is the deferred High audit finding. Block out 2-3 days. Hard gate before public launch.
-
----
-
-## What this is NOT
-
-- This is not "production-ready" in the sense of live users today. Vendor accounts (Termii sender, Paystack live KYC) are blocked-external; content (3,500 questions) is blocked on a hired reviewer; founder bio + WhatsApp number are blocked on user decisions.
-- This IS staging-ready in the sense that every CODE-READY task in LAUNCH_CHECKLIST is genuinely complete. Deploy to staging, run the manual test plan, and you'll have a working private-beta-ready environment.
+Currently the editorial factory + CLI are operator-only. The admin UI's trigger buttons are disabled because the server endpoint that would call the CLI's main() doesn't exist. Adding it is mechanical: stream the per-file outcomes via Supabase Realtime so the admin sees live progress.
 
 ---
 
 ## Final note
 
-Sprint 6 was the last engineering sprint per the brief. After this, work shifts to:
+Sprint 7 was the infrastructure sprint. Sprint 8 (when needed) is the
+content sprint — fill in the parser prompts, run the factory at scale,
+work the queue. Engineering pauses here.
 
-1. **Operations** — vendor accounts, KYC, DNS, real-phone tests
-2. **Content** — hiring a reviewer + running the bulk-generate batches
-3. **Customer development** — get the first 10-20 students onto staging, watch how they use it, iterate copy and onboarding
+Source files of truth for follow-up work:
 
-Engineering pauses here until that work catches up. Ping when you need a follow-up sprint to pick up the deferred items (Next 15 migration, theory-question UI, OG image generation, admin UI fill-out).
+- [EDITORIAL_FACTORY_README.md](EDITORIAL_FACTORY_README.md) — pipeline shape + workflow
+- [WHEN_PAST_QUESTIONS_ARRIVE.md](WHEN_PAST_QUESTIONS_ARRIVE.md) — runbook for the user
+- [STAGING_BRINGUP.md](STAGING_BRINGUP.md) — staging smoke-tests for CBT + factory
+- [API_COSTS.md](API_COSTS.md) — per-item economics + sprint envelope

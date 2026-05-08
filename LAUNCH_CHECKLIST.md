@@ -1,4 +1,4 @@
-# Launch Checklist (Sprint 6 — staging.examready.ng)
+# Launch Checklist (Sprint 7 — staging.examready.ng)
 
 Pre-launch tasks that need to happen _outside the codebase_ — vendor accounts, DNS, real phones, manual testing — before private beta. Each item is a tick-box, sorted **top-down by leverage**: highest-impact first.
 
@@ -9,7 +9,9 @@ Pre-launch tasks that need to happen _outside the codebase_ — vendor accounts,
 - `[BLOCKED-DECISION]` — waiting on user decision (founder bio, WhatsApp number)
 - `[BLOCKED-CONTENT]` — waiting on content review (questions, blog posts)
 
-> **Sprint 6 changes:** Pidgin feature-flagged off (PIDGIN_ENABLED), DeepSeek replaced Anthropic for all features, OpenAI gpt-4o-mini is the emergency fallback, AI Examiner + Predicted Score added as new moat features, WAEC + NECO promoted to coverage_status='beta', international exams hidden. See SESSION_REPORT.md for the full delta.
+> **Sprint 7 changes (2026-05-08):** Editorial factory infrastructure shipped (six pipelines + DeepSeek self-audit + materials/ inventory CLI + admin shell). JAMB-fidelity CBT engine shipped (full-screen runner, 9-key keyboard nav, JAMB-style calculator, server-authoritative timer). Web ingestion scaffolded (Wikipedia universities live; JAMB/WAEC/NECO/NUC/Myschool scaffolded with notes). Topic lessons schema + public route. Redis cache for /api/ai/explain-differently. Three new migrations (0009 + 0010 + 0011) need applying to staging. Per-pipeline parser prompts deferred until first source data lands — see WHEN_PAST_QUESTIONS_ARRIVE.md.
+>
+> **Sprint 6 changes (2026-05-06):** Pidgin feature-flagged off (PIDGIN_ENABLED), DeepSeek replaced Anthropic for all features, OpenAI gpt-4o-mini is the emergency fallback, AI Examiner + Predicted Score added as moat features, WAEC + NECO promoted to coverage_status='beta', international exams hidden.
 
 ---
 
@@ -18,7 +20,7 @@ Pre-launch tasks that need to happen _outside the codebase_ — vendor accounts,
 | #   | Task                                                                                                         | Status             | Time           | Cost            |
 | --- | ------------------------------------------------------------------------------------------------------------ | ------------------ | -------------- | --------------- |
 | 1   | Run `pnpm preflight` against staging env to confirm all required services responding                         | [CODE-READY]       | 5 min          | $0              |
-| 2   | Apply migration 0004 (RLS extension) + migrations 0006/0007/0008 to staging DB                               | [CODE-READY]       | 10 min         | $0              |
+| 2   | Apply migrations 0004 (RLS extension) + 0006/0007/0008 + Sprint 7 0009/0010/0011 to staging DB               | [CODE-READY]       | 10 min         | $0              |
 | 3   | Promote a test user to admin via `app_metadata.role = 'admin'` (NOT user_metadata — see AUDIT_REPORT.md C-1) | [CODE-READY]       | 5 min          | $0              |
 | 4   | Run staging end-to-end manual test plan — see [STAGING_BRINGUP.md](STAGING_BRINGUP.md)                       | [CODE-READY]       | 60 min         | $0              |
 | 5   | Trigger one bulk-generate batch (15 questions × 5 topics × WAEC Math) to verify QStash worker                | [CODE-READY]       | 15 min         | ~$0.10 DeepSeek |

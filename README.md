@@ -4,13 +4,21 @@
 
 Built mobile-first for Nigerian networks. Naira-only pricing. WhatsApp-first communication.
 
-> **Sprint 6 status (2026-05-06):** All engineering for the launch sequence is complete. Deployment is the next step.
+> **Sprint 7 status (2026-05-08):** Editorial factory + JAMB-fidelity CBT engine + web ingestion infrastructure shipped. Content lights up when source files land.
+>
+> - **Editorial factory:** materials/ → DeepSeek-driven extract → classify → parse → enrich → self-audit → DB. Six pipelines (questions / syllabus / universities / course-combinations / cutoffs / reference). Self-audit with adversarial system prompt + 85/70 thresholds targets ~$0.0010 per question fully processed. CLI: `pnpm editorial-factory`. See [EDITORIAL_FACTORY_README.md](EDITORIAL_FACTORY_README.md).
+> - **CBT engine:** JAMB-fidelity full-screen runner at `/cbt/[attemptId]`. 9-key keyboard nav (A/B/C/D/P/N/S/R/K), JAMB-style draggable calculator, color-coded question palette, server-authoritative timer. Cheat sheet at `/cbt/keyboard-help`.
+> - **Web ingestion:** scraping cache + robots.txt + rate limit + SSRF allow-list. Wikipedia universities wired; JAMB/WAEC/NECO/NUC/Myschool scaffolded. CLI: `pnpm web-ingest`.
+> - **Topic lessons:** schema + public route at `/lessons/[exam]/[subject]/[topic]` with Schema.org JSON-LD.
+> - **DeepSeek cost optimisation:** Redis cache for `/api/ai/explain-differently` (TTL 7 days; ~$0 on cache HIT).
+> - **What's deferred:** per-pipeline parser prompts (filled on first real source data), vision pipeline, mobile-CBT polish, admin queue UI. See [SESSION_REPORT.md](SESSION_REPORT.md).
+>
+> **Sprint 6 (2026-05-06) — still applies:**
 >
 > - **AI provider:** DeepSeek-V3 / R1 primary, OpenAI gpt-4o-mini fallback. See [`apps/web/lib/ai/README.md`](apps/web/lib/ai/README.md).
-> - **New moat features:** AI Examiner (theory grading) + Predicted Score (data + AI hybrid). Replaced Pidgin as primary differentiator.
-> - **Pidgin:** feature-flagged off via `PIDGIN_ENABLED` pending Nigerian-fluent reviewer sign-off (see PIDGIN_SAMPLES.md).
-> - **Launch coverage:** JAMB UTME (live) + WAEC SSCE / NECO SSCE (beta). See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
-> - **Audit:** AUDIT_REPORT.md — 1 Critical fixed (admin role from app_metadata, not user_metadata), 1 High fixed (cron timing-safe compare), 1 Medium fixed (RLS extension), 1 High deferred (Next 14 → 15).
+> - **Moat features:** AI Examiner (theory grading) + Predicted Score (data + AI hybrid).
+> - **Pidgin:** feature-flagged off via `PIDGIN_ENABLED` pending Nigerian-fluent reviewer sign-off.
+> - **Audit:** AUDIT_REPORT.md — 1 Critical + 1 High + 1 Medium fixed; 1 High deferred (Next 14 → 15).
 > - **Blog:** 10 SEO-targeted articles at `/blog`, sitemap-indexed.
 
 ---

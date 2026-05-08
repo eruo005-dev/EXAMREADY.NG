@@ -9,6 +9,55 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 - Sprint 2 work (in progress) — see git log for partial Sprint 2 deliverables
 
+## [Sprint 7] — 2026-05-08 — Editorial factory + JAMB-fidelity CBT engine + web ingestion
+
+### Added — editorial factory infrastructure
+
+- New `apps/web/lib/ingestion/` library: extractors (PDF via pdf-parse, DOCX via mammoth, HTML/text via cheerio, image stub for Phase-2.1 vision), heuristic + DeepSeek classifier, six pipelines (questions / syllabus / universities / course-combinations / cutoffs / reference), batched enricher (5 items/call, ~0.6 cache-hit ratio assumed), DeepSeek self-audit pass with adversarial system prompt and pipeline-specific dimensions. Cost helper at `cost.ts`.
+- Schema (migration 0009): 9 new tables — universities, courses, university_courses, cutoff_marks, reference_content, extraction_jobs, ingestion_jobs, editorial_audit_log, scraping_cache. Every domain row carries source_path/source_url for provenance.
+- CLIs: `pnpm inventory`, `pnpm editorial-factory` (flags `--pipeline`, `--dry-run`, `--use-ai`, stage-selection, `--force`), `pnpm web-ingest`.
+- Admin shell at `/admin/editorial` (six pipeline cards + audit-verdict legend).
+- Documentation: EDITORIAL_FACTORY_README.md, WHEN_PAST_QUESTIONS_ARRIVE.md.
+
+### Added — JAMB-fidelity CBT engine
+
+- Full-screen exam runner at `/cbt/[attemptId]` (lives outside `(app)` route group). Top bar with candidate/subject/timer/Q counter. Right sidebar with color-coded palette + 9-key cheat sheet.
+- 9-key keyboard navigation (NON-NEGOTIABLE): A/B/C/D pick, P previous, N next, R clear, K calculator (NOT C — that's option-C), S submit. F additive flag.
+- `JambCalculator.tsx` — pure-React floating draggable calculator. 4-function + memory + sqrt + percent. No advanced functions (matches JAMB's permitted set exactly).
+- `QuestionPalette.tsx` — color-coded grid; click jumps, right-click flags.
+- Server-authoritative timer (5-min amber, 1-min red, auto-submit at 0:00). localStorage snapshot every 10s.
+- Schema (migration 0010): `attempt_mode` extended with `cbt_mock_full`, `cbt_mock_subject`, `past_paper`. New `exam_paper_specs` table.
+- `/cbt/keyboard-help` printable cheat sheet.
+
+### Added — web ingestion
+
+- `lib/ingestion/scrapers/fetch.ts` — polite HTTP wrapper (SSRF allow-list, cache lookup, robots.txt, 10/min rate limit, 7-day cache TTL). UA: `ExamReadyBot/0.1 (+https://examready.ng/bot)`.
+- Six scrapers: Wikipedia (live), JAMB/WAEC/NECO/NUC/Myschool (scaffolded with notes).
+
+### Added — topic lessons
+
+- Schema (migration 0011): `topic_lessons` + `user_lesson_progress`.
+- Public route `/lessons/[examSlug]/[subjectSlug]/[topicSlug]` with Schema.org JSON-LD.
+
+### Added — DeepSeek cost optimisation
+
+- Redis cache for `/api/ai/explain-differently` (`ai:explain:<questionId>:<level>`, TTL 7 days). Pidgin not cached.
+
+### Documentation
+
+- API_COSTS.md Appendix C (editorial factory per-item costs).
+- STAGING_BRINGUP.md "Sprint 7 additions" section.
+- SESSION_REPORT.md updated to Sprint 7.
+
+### Changed
+
+- `materials/` folder added to .gitignore.
+
+### Honest deferrals
+
+- Per-pipeline **parser prompts** deliberately deferred until first real source data lands. Pipelines emit 0 rows + scaffold notes today rather than fabricate.
+- Vision pipeline (Phase 2.1), mobile-CBT bottom-sheet polish, `/admin/editorial/run` endpoint, `/admin/lessons/queue` moderation UI, OG-image generation per lesson.
+
 ## [Sprint 6] — 2026-05-06 — DeepSeek-only + AI Examiner + Predicted Score
 
 ### Security

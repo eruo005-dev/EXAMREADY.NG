@@ -176,6 +176,55 @@ If you set `CRON_SECRET` wrong, expect 401. If Termii is misconfigured, the row 
 
 ---
 
+## Sprint 7 additions — editorial factory + CBT engine
+
+The Sprint 7 factory + CBT engine ship in scaffold form. Stage these checks once the staging Supabase is live:
+
+### Editorial factory smoke test (10 min)
+
+```bash
+# 1. Inventory whatever is in materials/
+pnpm --filter @examready/web run inventory
+# Verify materials-inventory.md is generated and looks sensible.
+
+# 2. Dry-run the factory
+pnpm --filter @examready/web run editorial-factory --dry-run --max 3
+
+# 3. Live run on a single pipeline
+pnpm --filter @examready/web run editorial-factory --pipeline syllabus
+# Today this returns 0 rows by design (parser prompts deferred until
+# real source data arrives) — confirm the report shows the scaffold
+# notes, not crashes.
+```
+
+Open `/admin/editorial` in the browser. The page should render the six pipeline cards + audit-verdict legend. Trigger buttons are disabled pending the Phase-7 follow-up `/api/admin/editorial/run` endpoint.
+
+### Web scraper smoke test (5 min)
+
+```bash
+pnpm --filter @examready/web run web-ingest --source wikipedia --type universities --dry-run
+```
+
+Expected: fetches https://en.wikipedia.org/wiki/List_of_universities_in_Nigeria, populates `scraping_cache` on first hit, logs the count of detected institution-shaped rows. Re-run to confirm cache HIT. Other sources (jamb/waec/neco/nuc/myschool) return scaffold notes — not failures.
+
+### CBT engine smoke test (15 min)
+
+1. Sign in as a test user; start a practice mock from `/dashboard` (any subject, ≥10 questions).
+2. After creation, navigate to `/cbt/<attemptId>` (the URL Path is full-screen by design — no app shell).
+3. Verify the JAMB-fidelity layout: top bar (candidate / subject / timer / Q counter), main panel (passage if any + stem + 4 options), right palette grid, bottom action bar.
+4. Keyboard test (NON-NEGOTIABLE):
+   - `A` / `B` / `C` / `D` pick option, persists across refresh.
+   - `P` / `N` navigate. `R` clears the current selection.
+   - `F` flags current question (palette goes yellow).
+   - `K` toggles the calculator (verify drag, sqrt, %, memory all work; Esc closes).
+   - `S` opens the submit-confirmation modal; pressing Submit redirects to `/results/<attemptId>`.
+5. Timer pulse states: set a 5-minute attempt and watch the timer go amber at 5:00 then red-pulsing at 1:00 then auto-submit at 0:00.
+6. Open `/cbt/keyboard-help` and confirm the cheat sheet renders.
+
+Mobile (Phase 4.8 deferred): current layout is desktop-first. The palette + calculator panels can render on a phone but bottom-sheet treatment is a follow-up. Don't gate launch on mobile-CBT polish; a tablet works today.
+
+---
+
 ## Common failure modes + remediation
 
 | Symptom                                                       | Likely cause                                          | Fix                                                                            |
