@@ -71,6 +71,13 @@
       "when": 1778253979020,
       "tag": "0009_familiar_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1778255241508,
+      "tag": "0010_previous_skaar",
+      "breakpoints": true
     }
   ]
 }

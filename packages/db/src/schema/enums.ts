@@ -40,6 +40,12 @@ export const attemptModeEnum = pgEnum('attempt_mode', [
   'mock_cbt',
   'adaptive',
   'flashcard',
+  // Sprint 7 — JAMB-fidelity CBT engine. `mock_cbt` is kept for backwards
+  // compatibility with attempts created before Sprint 7; new flows go to
+  // the more specific modes below.
+  'cbt_mock_full', // 4-subject, JAMB-fidelity — exactly 180 questions, 120 min
+  'cbt_mock_subject', // single-subject mock per exam_paper_specs config
+  'past_paper', // user picks year + subject; SEO-friendly /past-papers/* lands here
 ]);
 
 export const notificationChannelEnum = pgEnum('notification_channel', [

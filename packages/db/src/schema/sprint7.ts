@@ -437,3 +437,58 @@ export const referenceContent = pgTable(
 
 export type ReferenceContent = typeof referenceContent.$inferSelect;
 export type NewReferenceContent = typeof referenceContent.$inferInsert;
+
+// ============================================================================
+// exam_paper_specs — per (exam × subject) CBT paper structure.
+// ============================================================================
+//
+// One row defines the JAMB-style mock for a (exam, subject) pair: how
+// many questions, how many minutes, what kind of questions, whether
+// passages are allowed, etc.
+//
+// JAMB UTME's defaults:
+//   - English: 60 questions, 30 min, mcq_single + comprehension
+//   - Other subjects (Math/Phys/Chem/Bio/etc.): 40 questions, 30 min each
+//   - Full mock: 4 subjects × the above = 180 questions, 120 min total
+//
+// WAEC/NECO use this same table with their own per-paper config.
+//
+// The full-mock composition (which subjects → which spec) is stored in
+// the user's attempt config, not here, because it varies per student
+// (English is mandatory, the other 3 are chosen).
+
+export const examPaperSpecs = pgTable(
+  'exam_paper_specs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    examId: uuid('exam_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    /** How many questions in the paper for this subject. */
+    questionCount: smallint('question_count').notNull(),
+    /** Time allowed in minutes. */
+    durationMinutes: smallint('duration_minutes').notNull(),
+    /** Total marks (e.g. 100 for JAMB). */
+    totalMarks: smallint('total_marks').notNull(),
+    /** Allowed question types as a string array (jsonb for forward-compat). */
+    allowedQuestionTypes: jsonb('allowed_question_types')
+      .$type<string[]>()
+      .notNull()
+      .default(['mcq_single']),
+    /** True = allow comprehension passages (English typically). */
+    allowsComprehension: boolean('allows_comprehension').notNull().default(false),
+    /** True = allow theory questions (WAEC/NECO essay subjects). */
+    allowsTheory: boolean('allows_theory').notNull().default(false),
+    /** True = paper supports the JAMB calculator widget. */
+    calculatorAllowed: boolean('calculator_allowed').notNull().default(true),
+    /** Optional human-readable note (e.g. "Paper 1 — objective only"). */
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uniq: uniqueIndex('exam_paper_specs_exam_subject_idx').on(t.examId, t.subjectId),
+  }),
+);
+
+export type ExamPaperSpec = typeof examPaperSpecs.$inferSelect;
+export type NewExamPaperSpec = typeof examPaperSpecs.$inferInsert;
