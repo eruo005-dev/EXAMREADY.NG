@@ -64,6 +64,13 @@
       "when": 1778087903853,
       "tag": "0008_funny_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778253979020,
+      "tag": "0009_familiar_scarecrow",
+      "breakpoints": true
     }
   ]
 }

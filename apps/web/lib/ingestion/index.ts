@@ -18,11 +18,31 @@ export { classifyHeuristic, classifyWithDeepSeek } from './classify';
 export {
   MATERIAL_CATEGORIES,
   INGESTION_PIPELINES,
+  PIPELINE_NAMES,
   pipelineForCategory,
+  pipelineRuntimeName,
   type ClassificationResult,
   type ExtractedFile,
   type FileKind,
   type IngestionPipeline,
   type InventoryEntry,
   type MaterialCategory,
+  type PipelineName,
 } from './types';
+export { auditItem, type AuditVerdict } from './audit';
+export { batchEnrich, enrichItem, type EnrichmentResult } from './enricher';
+export { estimateCost, formatCostUsd, priceFor } from './cost';
+export {
+  pipelineForCategoryConcrete,
+  pipelineByName,
+  questionsPipeline,
+  syllabusPipeline,
+  universityPipeline,
+  courseCombinationsPipeline,
+  cutoffPipeline,
+  referencePipeline,
+  type Pipeline,
+  type PipelineProducedRow,
+  type PipelineResult,
+  type PipelineRunArgs,
+} from './pipelines';

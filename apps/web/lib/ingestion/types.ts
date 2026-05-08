@@ -41,7 +41,15 @@ export const MATERIAL_CATEGORIES = [
 ] as const;
 export type MaterialCategory = (typeof MATERIAL_CATEGORIES)[number];
 
-/** What pipeline should consume a given category. */
+/**
+ * Pipeline routing labels used in the inventory report and UI. Descriptive
+ * `ingest-as-*` prefixes keep the report self-explanatory.
+ *
+ * Distinct from `PipelineName` below: these labels include the
+ * "manual-review-needed" sentinel (no pipeline runs), and the
+ * "course-requirements"/"course-combinations" categories both map to the
+ * same runtime pipeline. See `pipelineRuntimeName()` for the conversion.
+ */
 export const INGESTION_PIPELINES = [
   'ingest-as-questions',
   'ingest-as-syllabus',
@@ -52,6 +60,40 @@ export const INGESTION_PIPELINES = [
   'manual-review-needed',
 ] as const;
 export type IngestionPipeline = (typeof INGESTION_PIPELINES)[number];
+
+/**
+ * Runtime pipeline names — match the `ingestion_pipeline` Postgres enum
+ * exactly. The CLI's `--pipeline <name>` flag accepts these short names.
+ */
+export const PIPELINE_NAMES = [
+  'questions',
+  'syllabus',
+  'university',
+  'cutoff',
+  'course-combinations',
+  'reference',
+] as const;
+export type PipelineName = (typeof PIPELINE_NAMES)[number];
+
+/** Convert the user-facing routing label to the runtime pipeline name. */
+export function pipelineRuntimeName(label: IngestionPipeline): PipelineName | null {
+  switch (label) {
+    case 'ingest-as-questions':
+      return 'questions';
+    case 'ingest-as-syllabus':
+      return 'syllabus';
+    case 'ingest-as-university-data':
+      return 'university';
+    case 'ingest-as-cutoff-data':
+      return 'cutoff';
+    case 'ingest-as-course-combinations':
+      return 'course-combinations';
+    case 'ingest-as-reference':
+      return 'reference';
+    case 'manual-review-needed':
+      return null;
+  }
+}
 
 /**
  * Single mapping. Edit here if a new category is added. The unknown

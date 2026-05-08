@@ -129,6 +129,33 @@ Even with the user's RTX 5080 + RTX 3080, production AI on local hardware would 
 
 Local is a fantastic dev environment and a nice-to-have for one-off batch jobs (e.g., generating training data for an AI examiner fine-tune). Production should be on a hosted API at this stage.
 
+## Appendix C — Editorial factory cost line (Sprint 7)
+
+The editorial factory is the new high-volume cost line. It runs on DeepSeek-V3 (cheapest tier) for everything — including the self-audit pass — because the per-item economics matter more than any quality edge from R1 on this kind of structured scoring.
+
+| Item                                              | Pipeline call cost | Audit call cost | All-in (with 50% cache) |
+| ------------------------------------------------- | ------------------ | --------------- | ----------------------- |
+| Question fully processed (parse + enrich + audit) | ~$0.0008           | ~$0.0002        | **~$0.0010**            |
+| Topic from syllabus (with description)            | ~$0.0003           | ~$0.0002        | **~$0.0005**            |
+| University record (enriched)                      | ~$0.0001           | ~$0.0002        | **~$0.0003**            |
+| Cutoff record (no enrich, audit only)             | $0                 | ~$0.0001        | **~$0.0001**            |
+| Course-combination row                            | ~$0.0003           | ~$0.0002        | **~$0.0005**            |
+| Reference article (no enrich, audit only)         | $0                 | ~$0.0002        | **~$0.0002**            |
+
+Sprint envelopes:
+
+| Workload                                                                             | Items  | Cost     |
+| ------------------------------------------------------------------------------------ | ------ | -------- |
+| 10,000 questions fully processed                                                     | 10,000 | ~$10     |
+| Full Nigerian university dataset (200 universities + 5,000 courses + 20,000 cutoffs) | 25,200 | ~$5      |
+| Full WAEC + NECO + JAMB syllabus (33 subjects × ~15 topics)                          | 495    | ~$0.25   |
+| 30 lessons (Phase 6 sample)                                                          | 30     | ~$0.12   |
+| **Full Sprint 7 content seed**                                                       | ~36k   | **~$15** |
+
+The audit's prompt cache is the big lever — same system prompt across every item of the same pipeline means the cache-hit ratio approaches 0.7-0.8 once the run is past the first ~10 items. The numbers above assume a conservative 0.5.
+
+> **The factory is throttled by reviewer time, not API cost.** Even at full 10k-question generation, the API bill is dwarfed by the ~₦200k reviewer budget for the moderation queue (LAUNCH_CHECKLIST §3).
+
 ## When to revisit
 
 - Re-pull DeepSeek + OpenAI list prices monthly until DAU is stable.

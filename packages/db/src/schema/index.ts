@@ -17,3 +17,4 @@ export * from './consent';
 export * from './exam-waitlist';
 export * from './study-plans';
 export * from './sprint6';
+export * from './sprint7';

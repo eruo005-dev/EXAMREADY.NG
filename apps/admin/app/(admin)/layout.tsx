@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: '/questions/generate', label: '↳ Generate with AI' },
   { href: '/questions/ai-queue', label: '↳ AI moderation queue' },
   { href: '/ai-quality-review', label: '↳ AI quality review' },
+  { href: '/editorial', label: 'Editorial factory' },
   { href: '/users', label: 'Users' },
   { href: '/moderation', label: 'Moderation' },
   { href: '/broadcasts', label: 'Broadcasts' },
