@@ -44,6 +44,7 @@ import {
   TierLimitExceededError,
 } from '@/lib/api/handler';
 import { db } from '@/lib/db';
+import { getRedis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -133,6 +134,51 @@ export const POST = defineRoute({
 
   const start = Date.now();
 
+  // ------------------------------------------------------------------
+  // Sprint 7 Phase 5.2 — application-layer cache.
+  //
+  // Same (questionId, level) pair tends to be requested by many users
+  // when a question goes viral; serving from Redis is ~$0 instead of
+  // ~$0.0004 per call. Cache only NON-pidgin levels — pidgin output is
+  // gated on review and we don't want to pin a sample that might fail
+  // a future audit. TTL 7 days is conservative; we can tighten if a
+  // model upgrade lands and outputs need to refresh.
+  // ------------------------------------------------------------------
+  const cache = getRedis();
+  const cacheKey =
+    parsed.level !== 'pidgin' ? `ai:explain:${parsed.questionId}:${parsed.level}` : null;
+  if (cache && cacheKey) {
+    try {
+      const cached = await cache.get<string>(cacheKey);
+      if (typeof cached === 'string' && cached.length > 0) {
+        await logAiCall({
+          userId: user.profile.id,
+          feature: 'explain_differently',
+          provider: 'deepseek',
+          model: 'cache-hit',
+          wasFallback: false,
+          inputTokens: 0,
+          outputTokens: 0,
+          durationMs: Date.now() - start,
+          succeeded: true,
+          outputText: cached,
+        });
+        return ok({
+          explanation: cached,
+          level: parsed.level,
+          aiUsageLogId: null,
+          cacheHit: true,
+          remainingToday:
+            quota.remainingToday === Number.MAX_SAFE_INTEGER
+              ? null
+              : Math.max(0, quota.remainingToday - 1),
+        });
+      }
+    } catch {
+      // Cache failure should never break the user-facing call.
+    }
+  }
+
   try {
     const outcome = await runWithFallback(routing.primary, routing.fallback, (provider, model) =>
       provider.completion({
@@ -175,10 +221,22 @@ export const POST = defineRoute({
       outputText: explanation,
     });
 
+    // Persist to cache (best-effort) so the next caller hits the
+    // fast path. 7-day TTL aligns with DeepSeek's prompt-cache TTL —
+    // refreshing both at the same cadence keeps cost projections stable.
+    if (cache && cacheKey) {
+      try {
+        await cache.set(cacheKey, explanation, { ex: 7 * 24 * 3600 });
+      } catch {
+        // Cache write failure isn't user-facing; just skip.
+      }
+    }
+
     return ok({
       explanation,
       level: parsed.level,
       aiUsageLogId,
+      cacheHit: false,
       remainingToday:
         quota.remainingToday === Number.MAX_SAFE_INTEGER
           ? null

@@ -492,3 +492,82 @@ export const examPaperSpecs = pgTable(
 
 export type ExamPaperSpec = typeof examPaperSpecs.$inferSelect;
 export type NewExamPaperSpec = typeof examPaperSpecs.$inferInsert;
+
+// ============================================================================
+// topic_lessons — Phase 6 lessons per topic.
+// ============================================================================
+//
+// One row per topic with a long-form lesson body (markdown). Generated
+// per topic by DeepSeek using the topic name + description (Phase 3
+// syllabus pipeline output) as anchor. Reviewed via the existing
+// J/K/A/R/E shortcuts in /admin/lessons/queue (consistent with the
+// question moderation queue).
+//
+// Public route: /lessons/[examSlug]/[subjectSlug]/[topicSlug]
+// SEO-indexable; reuses the Sprint 6 MDX renderer.
+
+export const lessonStatusEnum = pgEnum('lesson_status', [
+  'draft',
+  'review',
+  'published',
+  'archived',
+]);
+
+export const topicLessons = pgTable(
+  'topic_lessons',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    topicId: uuid('topic_id').notNull(),
+    title: text('title').notNull(),
+    slug: varchar('slug', { length: 200 }).notNull(),
+    /** Markdown body — sanitised on render. */
+    contentMarkdown: text('content_markdown').notNull(),
+    /** HTML cache from the markdown renderer. Refreshed on update. */
+    contentHtml: text('content_html'),
+    /** Estimated reading time in minutes. */
+    readingTimeMinutes: smallint('reading_time_minutes').notNull().default(5),
+    /** Dependency topics — frontend renders prerequisites callouts. */
+    prerequisiteTopicIds: jsonb('prerequisite_topic_ids').$type<string[]>(),
+    /** Worked examples count parsed from the body. */
+    workedExamplesCount: smallint('worked_examples_count').notNull().default(0),
+    status: lessonStatusEnum('status').notNull().default('draft'),
+    /** AI provenance — model that generated this lesson. */
+    generatedByModel: varchar('generated_by_model', { length: 64 }),
+    /** Reviewer who approved this lesson. */
+    approvedByUserId: uuid('approved_by_user_id'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    topicIdx: uniqueIndex('topic_lessons_topic_idx').on(t.topicId),
+    slugIdx: uniqueIndex('topic_lessons_slug_idx').on(t.slug),
+    statusIdx: index('topic_lessons_status_idx').on(t.status, t.updatedAt.desc()),
+  }),
+);
+
+export type TopicLesson = typeof topicLessons.$inferSelect;
+export type NewTopicLesson = typeof topicLessons.$inferInsert;
+
+// user_lesson_progress — tracks bookmark + mark-as-read state per user.
+export const userLessonProgress = pgTable(
+  'user_lesson_progress',
+  {
+    userId: uuid('user_id').notNull(),
+    lessonId: uuid('lesson_id')
+      .notNull()
+      .references(() => topicLessons.id, { onDelete: 'cascade' }),
+    bookmarked: boolean('bookmarked').notNull().default(false),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    /** Reading-progress percentage (0-100). Updated by client scroll listener. */
+    progressPercent: smallint('progress_percent').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.lessonId] }),
+    bookmarkIdx: index('user_lesson_progress_bookmark_idx').on(t.userId, t.bookmarked),
+  }),
+);
+
+export type UserLessonProgress = typeof userLessonProgress.$inferSelect;
+export type NewUserLessonProgress = typeof userLessonProgress.$inferInsert;
