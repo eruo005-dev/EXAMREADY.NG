@@ -60,3 +60,17 @@ desktop.ini
 *.tmp
 *.temp
 .tmp/
+
+# ============================================================================
+# Editorial factory (Sprint 7) — never commit raw source materials.
+# These are large (often copyrighted) PDFs that must stay local. The pipeline
+# (`pnpm editorial-factory`) reads them and writes only structured output to
+# the database; the source files themselves stay out of version control.
+# ============================================================================
+materials/
+materials-inventory.md
+editorial-results-*.md
+scraping-cache/
+
+# Editorial factory build artifacts
+PROMPT_COMPRESSION_REVIEW.md
